@@ -1,0 +1,43 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import GlobalStyles from './styles/GlobalStyles';
+import Navbar from './components/Navbar/Navbar';
+import Home from './pages/Home/Home';
+import ProductDetail from './pages/ProductDetail/ProductDetail';
+import Cart from './pages/Cart/Cart';
+import { CartProvider } from './context/CartContext';
+import Checkout from './pages/Checkout/Checkout';
+import './App.css';
+import { AnimatePresence } from 'framer-motion';
+
+// Create a separate component for routes
+function AppRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/about" element={<div>About Page</div>} />
+        <Route path="/support" element={<div>Support Page</div>} />
+        <Route path="/checkout" element={<Checkout />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
+function App() {
+  return (
+    <CartProvider>
+      <Router>
+        <GlobalStyles />
+        <Navbar />
+        <AppRoutes />
+      </Router>
+    </CartProvider>
+  );
+}
+
+export default App; 
