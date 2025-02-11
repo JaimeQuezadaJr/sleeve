@@ -170,10 +170,18 @@ const PaymentForm = () => {
     }
 
     try {
+      // Debug cart items structure
+      console.log('Cart Items Structure:', cartItems.map(item => ({
+        item,
+        hasProduct: !!item.product,
+        directId: item.id,
+        type: typeof item
+      })));
+
       console.log('Creating payment intent:', {
         amount: cartTotal * 100,
         items: cartItems.map(item => ({
-          id: item.product.id,
+          id: item.id,  // Try using direct ID first
           quantity: item.quantity
         })),
         shipping: shippingDetails
@@ -187,7 +195,7 @@ const PaymentForm = () => {
         body: JSON.stringify({ 
           amount: cartTotal * 100,
           items: cartItems.map(item => ({
-            id: item.product.id,
+            id: item.id,  // Try using direct ID first
             quantity: item.quantity
           })),
           shipping: shippingDetails
