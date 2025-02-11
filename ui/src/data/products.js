@@ -1,7 +1,7 @@
 export const products = [
   { 
     id: 1, 
-    title: 'Macbook Pro Sleeve', 
+    title: 'Macbook Pro Sleeve 13"', 
     price: '$50', 
     image: '/whitesleeve.webp',
     description: `Engineered with military-grade 1000D nylon exterior, providing exceptional 
@@ -13,7 +13,7 @@ export const products = [
   },
   { 
     id: 2, 
-    title: 'iPad Pro Sleeve', 
+    title: 'iPad Pro Sleeve 11"', 
     price: '$30', 
     image: '/UltraSleeve_14_slategreen.webp',
     description: `Protected by a high-density 800D nylon shell with DWR (Durable Water Repellent) 
@@ -25,7 +25,7 @@ export const products = [
   },
   { 
     id: 3, 
-    title: 'Macbook Air Sleeve', 
+    title: 'Macbook Air Sleeve 13"', 
     price: '$50', 
     image: '/UltraSleeve_16_rose.webp',
     description: `Constructed with aerospace-grade ballistic nylon featuring a TPU-coated exterior 

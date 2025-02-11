@@ -10,8 +10,10 @@ const app = express();
 
 // Update CORS configuration to be more permissive
 app.use(cors({
-  origin: ['your_frontend_url'],
-  credentials: true
+  origin: true, // Allow all origins
+  credentials: true, // Allow credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Use raw body for webhook route
