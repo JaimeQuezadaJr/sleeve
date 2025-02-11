@@ -47,6 +47,9 @@ const ProductCard = styled(motion.div)`
   aspect-ratio: 1;
   background-color: #f5f5f5;
   cursor: pointer;
+  transform-origin: center;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
   
   @media (min-width: 768px) {
     height: 400px;
@@ -68,6 +71,8 @@ const ProductImage = styled.img`
   height: 100%;
   object-fit: cover;
   transition: opacity 0.3s ease;
+  transform: translateZ(0);
+  will-change: transform;
 `;
 
 const ProductInfo = styled(motion.div)`
@@ -75,6 +80,7 @@ const ProductInfo = styled(motion.div)`
   bottom: 10px;
   left: 20px;
   color: #000;
+  transform: translateZ(0);
 `;
 
 const ProductTitle = styled.h3`
@@ -96,7 +102,10 @@ const ProductGrid = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.1 }}
-            transition={{ duration: 0.2 }}
+            transition={{ 
+              duration: 0.4,
+              ease: "easeOut"
+            }}
           >
             <Link to={`/product/${product.id}`}>
               <ProductImage src={product.image} alt={product.title} />
