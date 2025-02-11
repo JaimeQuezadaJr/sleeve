@@ -12,6 +12,9 @@ export default async function handler(req, res) {
     const { amount, items, shipping } = req.body;
     
     try {
+      // Add logging to see what's being received
+      console.log('Received request:', { amount, items, shipping });
+
       // Verify inventory
       for (const item of items) {
         const { rows } = await client.execute(

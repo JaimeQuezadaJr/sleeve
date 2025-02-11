@@ -170,7 +170,12 @@ const PaymentForm = () => {
     }
 
     try {
-      console.log('Sending request to create payment intent...');
+      console.log('Creating payment intent:', {
+        amount: cartTotal * 100,
+        items: cartItems,
+        shipping: shippingDetails
+      });
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/create-payment-intent`, {
         method: 'POST',
         headers: {
@@ -180,42 +185,48 @@ const PaymentForm = () => {
           amount: cartTotal * 100,
           items: cartItems,
           shipping: shippingDetails
-        }),
+        })
       });
 
       const data = await response.json();
-      console.log('Payment intent created:', data);
+      console.log('Payment intent response:', data);
 
-      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-        data.clientSecret,
-        {
-          payment_method: {
-            card: elements.getElement(CardElement),
-            billing_details: {
-              name: shippingDetails.name,
-              email: shippingDetails.email,
-              address: {
-                line1: shippingDetails.address,
-                city: shippingDetails.city,
-                state: shippingDetails.state,
-                postal_code: shippingDetails.zipCode,
-                country: shippingDetails.country
+      if (data.error) {
+        console.error('Server error:', data.error);
+        setError(data.error.message);
+      } else if (data.clientSecret) {
+        console.log('Payment intent created:', data.clientSecret);
+        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+          data.clientSecret,
+          {
+            payment_method: {
+              card: elements.getElement(CardElement),
+              billing_details: {
+                name: shippingDetails.name,
+                email: shippingDetails.email,
+                address: {
+                  line1: shippingDetails.address,
+                  city: shippingDetails.city,
+                  state: shippingDetails.state,
+                  postal_code: shippingDetails.zipCode,
+                  country: shippingDetails.country
+                }
               }
             }
           }
-        }
-      );
+        );
 
-      if (stripeError) {
-        console.error('Stripe error:', stripeError);
-        setError(stripeError.message);
-      } else if (paymentIntent.status === 'succeeded') {
-        console.log('Payment successful:', paymentIntent);
-        clearCart();
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/');
-        }, 2000);
+        if (stripeError) {
+          console.error('Stripe error:', stripeError);
+          setError(stripeError.message);
+        } else if (paymentIntent.status === 'succeeded') {
+          console.log('Payment successful:', paymentIntent);
+          clearCart();
+          setSuccess(true);
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        }
       }
     } catch (err) {
       console.error('Payment error:', err);
