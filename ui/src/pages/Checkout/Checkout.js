@@ -172,7 +172,10 @@ const PaymentForm = () => {
     try {
       console.log('Creating payment intent:', {
         amount: cartTotal * 100,
-        items: cartItems,
+        items: cartItems.map(item => ({
+          id: item.product.id,
+          quantity: item.quantity
+        })),
         shipping: shippingDetails
       });
 
@@ -183,7 +186,10 @@ const PaymentForm = () => {
         },
         body: JSON.stringify({ 
           amount: cartTotal * 100,
-          items: cartItems,
+          items: cartItems.map(item => ({
+            id: item.product.id,
+            quantity: item.quantity
+          })),
           shipping: shippingDetails
         })
       });
