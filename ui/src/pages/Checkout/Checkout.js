@@ -176,7 +176,7 @@ const PaymentForm = () => {
         shipping: shippingDetails
       });
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/create-payment-intent`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
