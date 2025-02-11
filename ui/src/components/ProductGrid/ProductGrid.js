@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { products } from '../../data/products';
+import { products } from '../../data/products';  // Keep this for now
 
 const GridSection = styled.section`
   min-height: 100vh;
@@ -96,7 +96,6 @@ const ProductGrid = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
-            whileHover={{ scale: 1.1 }}
           >
             <Link to={`/product/${product.id}`}>
               <ProductImage src={product.image} alt={product.title} />

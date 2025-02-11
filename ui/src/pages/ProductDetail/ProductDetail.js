@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { products } from '../../data/products';
+import { products } from '../../data/products';  // Keep using static data
 import { useCart } from '../../context/CartContext';
 
 const ProductContainer = styled.div`
@@ -178,7 +178,7 @@ const ProductDetail = () => {
   const { addToCart } = useCart();
   
   const product = products.find(p => p.id === parseInt(id));
-  
+
   if (!product) {
     navigate('/');
     return null;
