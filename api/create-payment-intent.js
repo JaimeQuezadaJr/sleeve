@@ -12,16 +12,35 @@ export default async function handler(req, res) {
     const { amount, items, shipping } = req.body;
     
     try {
-      // Add logging to see what's being received
-      console.log('Received request:', { amount, items, shipping });
+      // Add more detailed logging
+      console.log('Received request:', { 
+        amount, 
+        itemsType: typeof items,
+        isArray: Array.isArray(items),
+        items,
+        shipping 
+      });
 
       // Verify inventory
       for (const item of items) {
+        console.log('Item structure:', {
+          id: item.id,
+          type: typeof item.id,
+          parsed: parseInt(item.id),
+          fullItem: item
+        });
+
         const { rows } = await client.execute(
-          'SELECT inventory_count FROM products WHERE id = ?', 
-          [item.id]
+          'SELECT inventory_count FROM products WHERE id = ?',
+          [parseInt(item.id)]
         );
         
+        console.log('SQL Query:', {
+          query: 'SELECT inventory_count FROM products WHERE id = ?',
+          params: [parseInt(item.id)],
+          response: rows
+        });
+
         if (!rows[0] || rows[0].inventory_count < item.quantity) {
           throw new Error(`Insufficient inventory for product ${item.id}`);
         }
@@ -38,6 +57,7 @@ export default async function handler(req, res) {
 
       res.json({ clientSecret: paymentIntent.client_secret });
     } catch (err) {
+      console.error('Server error:', err);
       res.status(500).json({ error: err.message });
     }
   }
