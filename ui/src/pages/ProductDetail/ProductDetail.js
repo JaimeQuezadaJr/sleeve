@@ -46,16 +46,6 @@ const CardSide = styled(motion.div)`
   flex-direction: column;
 `;
 
-const CardBack = styled(CardSide)`
-  background-color: #f5f5f5;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-`;
-
 const Description = styled.p`
   font-size: 15px;
   line-height: 1.8;
