@@ -18,13 +18,15 @@ async function migrate() {
       )
     `);
 
+    // First drop the existing table
+    await client.execute(`DROP TABLE IF EXISTS products`);
+
+    // Create new table with only needed columns
     await client.execute(`
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
-        description TEXT,
         price INTEGER NOT NULL,
-        image_url TEXT,
         inventory_count INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -54,10 +56,7 @@ async function migrate() {
       )
     `);
 
-    // First, clear existing products
-    await client.execute('DELETE FROM products');
-
-    // Insert your current products
+    // Insert products with only needed columns
     await client.execute(`
       INSERT INTO products (id, title, price, inventory_count)
       VALUES 

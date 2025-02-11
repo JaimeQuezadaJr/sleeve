@@ -12,39 +12,30 @@ export default async function handler(req, res) {
     const { amount, items, shipping } = req.body;
     
     try {
-      // Add more detailed logging
-      console.log('Received request:', { 
-        amount, 
-        itemsType: typeof items,
-        isArray: Array.isArray(items),
-        items,
-        shipping 
-      });
+      // Log the raw request
+      console.log('Raw items:', JSON.stringify(items, null, 2));
 
       // Verify inventory
       for (const item of items) {
-        // Debug the query parameters
-        console.log('Query params:', {
-          rawId: item.id,
-          type: typeof item.id
+        // Log each item being processed
+        console.log('Processing item:', {
+          item,
+          idType: typeof item.id,
+          idValue: item.id
         });
-
-        // Ensure numeric ID
-        const itemId = Number(item.id);
-        
-        if (isNaN(itemId)) {
-          throw new Error(`Invalid item ID: ${item.id}`);
-        }
 
         const { rows } = await client.execute(
           'SELECT inventory_count FROM products WHERE id = ?',
-          [itemId]
+          // Try using the raw ID without conversion
+          [item.id]
         );
         
-        console.log('SQL Query:', {
-          query: 'SELECT inventory_count FROM products WHERE id = ?',
-          params: [itemId],
-          response: rows
+        // Log the query results
+        console.log('Query results:', {
+          sql: 'SELECT inventory_count FROM products WHERE id = ?',
+          params: [item.id],
+          rowCount: rows.length,
+          firstRow: rows[0]
         });
 
         if (!rows[0] || rows[0].inventory_count < item.quantity) {
