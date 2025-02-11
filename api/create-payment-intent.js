@@ -23,21 +23,22 @@ export default async function handler(req, res) {
 
       // Verify inventory
       for (const item of items) {
-        console.log('Item structure:', {
-          id: item.id,
-          type: typeof item.id,
-          parsed: parseInt(item.id),
-          fullItem: item
-        });
+        // Ensure we have a valid ID
+        if (!item.id) {
+          throw new Error('Invalid item ID');
+        }
+
+        // Convert ID to string for the query
+        const itemId = item.id.toString();
 
         const { rows } = await client.execute(
           'SELECT inventory_count FROM products WHERE id = ?',
-          [parseInt(item.id)]
+          [itemId]
         );
         
         console.log('SQL Query:', {
           query: 'SELECT inventory_count FROM products WHERE id = ?',
-          params: [parseInt(item.id)],
+          params: [itemId],
           response: rows
         });
 
