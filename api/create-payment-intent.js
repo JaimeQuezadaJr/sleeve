@@ -23,13 +23,18 @@ export default async function handler(req, res) {
 
       // Verify inventory
       for (const item of items) {
-        // Ensure we have a valid ID
-        if (!item.id) {
-          throw new Error('Invalid item ID');
-        }
+        // Debug the query parameters
+        console.log('Query params:', {
+          rawId: item.id,
+          type: typeof item.id
+        });
 
-        // Convert ID to string for the query
-        const itemId = item.id.toString();
+        // Ensure numeric ID
+        const itemId = Number(item.id);
+        
+        if (isNaN(itemId)) {
+          throw new Error(`Invalid item ID: ${item.id}`);
+        }
 
         const { rows } = await client.execute(
           'SELECT inventory_count FROM products WHERE id = ?',
