@@ -9,6 +9,8 @@ import { CartProvider } from './context/CartContext';
 import Checkout from './pages/Checkout/Checkout';
 import './App.css';
 import { AnimatePresence } from 'framer-motion';
+import About from './pages/About/About';
+import Support from './pages/Support/Support';
 
 // Create a separate component for routes
 function AppRoutes() {
@@ -20,8 +22,8 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
-        <Route path="/about" element={<div>About Page</div>} />
-        <Route path="/support" element={<div>Support Page</div>} />
+        <Route path="/about" element={<About />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/checkout" element={<Checkout />} />
       </Routes>
     </AnimatePresence>
@@ -30,13 +32,13 @@ function AppRoutes() {
 
 function App() {
   return (
-    <CartProvider>
-      <Router>
+    <Router>
+      <CartProvider>
         <GlobalStyles />
         <Navbar />
         <AppRoutes />
-      </Router>
-    </CartProvider>
+      </CartProvider>
+    </Router>
   );
 }
 

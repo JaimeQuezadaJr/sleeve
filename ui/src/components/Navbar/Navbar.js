@@ -246,10 +246,10 @@ const Navbar = () => {
               variants={menuVariants}
             >
               <MenuItem whileHover={{ x: 10 }}>
-                <Link to="/about">ABOUT</Link>
+                <Link to="/about" onClick={() => setIsMenuOpen(false)}>ABOUT</Link>
               </MenuItem>
               <MenuItem whileHover={{ x: 10 }}>
-                <Link to="/support">SUPPORT</Link>
+                <Link to="/support" onClick={() => setIsMenuOpen(false)}>SUPPORT</Link>
               </MenuItem>
             </MenuDropdown>
           </>

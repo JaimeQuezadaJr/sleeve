@@ -11,7 +11,7 @@ import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const stripePromise = loadStripe('pk_test_51Qr1o2CfDOzrZLNeocpGnwmvA045KsLuCvnkQNnOJphCRDS2c3RnAroZV1mQXZwM8dX24Hu4nPW4lM8xaG9udpfd00ugBWEZad');
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 const CheckoutContainer = styled(motion.div)`
   min-height: 100vh;
@@ -171,7 +171,7 @@ const PaymentForm = () => {
 
     try {
       console.log('Sending request to create payment intent...');
-      const response = await fetch('http://localhost:3001/api/create-payment-intent', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/create-payment-intent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -95,8 +95,8 @@ const ProductGrid = () => {
             key={product.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 1 }}
+            whileHover={{ scale: 1.1 }}
           >
             <Link to={`/product/${product.id}`}>
               <ProductImage src={product.image} alt={product.title} />

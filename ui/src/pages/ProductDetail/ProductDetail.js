@@ -21,6 +21,21 @@ const ProductCard = styled.div`
   aspect-ratio: 1;
   background-color: #f5f5f5;
   cursor: default;
+  
+  @media (min-width: 768px) {
+    width: 90%;
+    max-width: 600px; // Smaller on tablets
+  }
+  
+  @media (min-width: 1024px) {
+    width: 80%;
+    max-width: 500px; // Even smaller on laptops
+  }
+  
+  @media (min-width: 1440px) {
+    width: 70%;
+    max-width: 600px; // Slightly larger on very large screens
+  }
 `;
 
 const CardSide = styled(motion.div)`
@@ -50,13 +65,21 @@ const Description = styled.p`
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  padding: 0 20px;
+  padding: 0 40px;
   color: #333;
+  width: 100%;
   
   @media (max-width: 768px) {
     font-size: 14px;
     padding: 0 40px;
-    max-width: 400px;
+    max-width: 100%;
+    line-height: 1.6;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 13px;
+    padding: 0 30px;
+    line-height: 1.5;
   }
 `;
 
@@ -89,15 +112,33 @@ const ProductInfo = styled.div`
   bottom: 20px;
   left: 20px;
   color: #000;
+  max-width: calc(100% - 80px);
+  
+  @media (max-width: 768px) {
+    bottom: 15px;
+    left: 15px;
+  }
 `;
 
 const ProductTitle = styled.h3`
   font-size: 18px;
   margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
 `;
 
 const ProductPrice = styled.p`
   font-size: 16px;
+  
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const AddToCartButton = styled(motion.button)`
@@ -112,6 +153,13 @@ const AddToCartButton = styled(motion.button)`
   align-items: center;
   justify-content: center;
   z-index: 2;
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #000;
+    stroke: currentColor;
+  }
 `;
 
 const SuccessIcon = styled(motion.div)`
@@ -137,11 +185,15 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
-    addToCart(product);
-    setIsAdded(true);
-    setTimeout(() => {
-      setIsAdded(false);
-    }, 1500);
+    try {
+      addToCart(product);
+      setIsAdded(true);
+      setTimeout(() => {
+        setIsAdded(false);
+      }, 1500);
+    } catch (error) {
+      // Handle error silently
+    }
   };
 
   return (
@@ -154,7 +206,7 @@ const ProductDetail = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.8 }}
             >
               <ProductImage src={product.image} alt={product.title} />
               <ProductInfo>

@@ -14,33 +14,18 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = async (product) => {
-    try {
-      const response = await fetch(`http://localhost:3001/api/products/${product.id}`);
-      const { inventory_count } = await response.json();
-      
-      if (inventory_count <= 0) {
-        throw new Error('Product is out of stock');
+  const addToCart = (product) => {
+    setCartItems(prevItems => {
+      const existingItem = prevItems.find(item => item.id === product.id);
+      if (existingItem) {
+        return prevItems.map(item =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
       }
-      
-      setCartItems(prevItems => {
-        const existingItem = prevItems.find(item => item.id === product.id);
-        if (existingItem) {
-          if (existingItem.quantity >= inventory_count) {
-            throw new Error('Not enough inventory');
-          }
-          return prevItems.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
-        }
-        return [...prevItems, { ...product, quantity: 1 }];
-      });
-    } catch (err) {
-      // Handle error (show notification, etc.)
-      console.error(err);
-    }
+      return [...prevItems, { ...product, quantity: 1 }];
+    });
   };
 
   const updateQuantity = (productId, newQuantity) => {

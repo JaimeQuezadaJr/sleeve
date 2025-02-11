@@ -8,11 +8,16 @@ const { createOrderConfirmationEmail } = require('./utils/emailTemplate');
 
 const app = express();
 
+// Update CORS configuration to be more permissive
+app.use(cors({
+  origin: ['your_frontend_url'],
+  credentials: true
+}));
+
 // Use raw body for webhook route
 app.use('/webhook', express.raw({ type: 'application/json' }));
 // Use JSON parsing for all other routes
 app.use(express.json());
-app.use(cors());
 
 // Get products with inventory
 app.get('/api/products', (req, res) => {
@@ -287,7 +292,7 @@ app.get('/api/admin/orders', (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Change from localhost to 0.0.0.0 to listen on all network interfaces
+app.listen(3001, '0.0.0.0', () => {
+  console.log('Server is running on port 3001');
 }); 
