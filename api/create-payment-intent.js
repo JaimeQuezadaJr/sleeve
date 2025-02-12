@@ -78,17 +78,25 @@ export default async function handler(req, res) {
         }
 
         // Create order items
+        const orderItems = [];  // Store items with their details
         for (const item of items) {
           console.log('Processing item for order:', item);
           // Get product price
           const { rows: [product] } = await client.execute(
-            `SELECT price FROM products WHERE id = ${item.id}`
+            `SELECT price, title FROM products WHERE id = ${item.id}`  // Also get title
           );
           console.log('Found product:', product);
 
           if (!product) {
             throw new Error(`Product not found: ${item.id}`);
           }
+
+          // Store item details for email
+          orderItems.push({
+            quantity: item.quantity,
+            price: product.price,
+            title: product.title
+          });
 
           console.log('Inserting order item...');
           await client.execute(
@@ -101,13 +109,6 @@ export default async function handler(req, res) {
                 ${product.price}
               )`
           );
-
-          console.log('Created order item:', {
-            orderId: order.id,
-            productId: item.id,
-            quantity: item.quantity,
-            price: product.price
-          });
 
           // Update inventory count
           await client.execute(
@@ -131,11 +132,7 @@ export default async function handler(req, res) {
             email: shipping.email,
             name: shipping.name,
             orderId: order.id,
-            items: items.map(item => ({
-              ...item,
-              price: product.price,
-              title: product.title
-            })),
+            items: orderItems,  // Use stored items with details
             total: amount
           });
           console.log('Order confirmation email sent');
