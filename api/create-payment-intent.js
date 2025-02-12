@@ -99,16 +99,23 @@ module.exports = async function handler(req, res) {
           console.log('Executing product query:', productQuery);
           
           try {
-            const { rows: [product] } = await client.execute(
-              productQuery
-            );
+            console.log('About to execute query...');
+            const { rows } = await client.execute(productQuery);
+            console.log('Query executed, rows:', rows);
+
+            if (!rows || rows.length === 0) {
+              throw new Error(`No product found with id ${item.id}`);
+            }
+
+            const [product] = rows;
+            console.log('Product found:', product);
+
             if (!product) {
               throw new Error(`Product ${item.id} not found`);
             }
             if (typeof product.price === 'undefined') {
               throw new Error(`Product ${item.id} has no price`);
             }
-            console.log('Product query result:', product);
 
             console.log('Processing item with full details:', {
               item,
