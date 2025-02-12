@@ -7,36 +7,19 @@ const client = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN
 });
 
-// Verify database schema on startup
-async function verifySchema() {
-  try {
-    console.log('Verifying database schema...');
-    const { rows: tables } = await client.execute(`
-      SELECT name FROM sqlite_master WHERE type='table'
-    `);
-    console.log('Available tables:', tables.map(t => t.name));
-
-    const { rows: orderColumns } = await client.execute(`
-      SELECT * FROM pragma_table_info('orders')
-    `);
-    console.log('Orders table columns:', orderColumns.map(col => col.name));
-
-    const { rows: orderItemsColumns } = await client.execute(`
-      SELECT * FROM pragma_table_info('order_items')
-    `);
-    console.log('Order items table columns:', orderItemsColumns.map(col => col.name));
-  } catch (error) {
-    console.error('Schema verification failed:', error);
-  }
-}
-
-verifySchema();
-
 module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     const { amount, items, shipping } = req.body;
     
     try {
+      // Test database connection first
+      try {
+        await client.execute('SELECT 1');
+      } catch (connError) {
+        console.error('Database connection failed:', connError);
+        throw new Error('Database connection failed');
+      }
+
       // Log request data for debugging
       console.log('Request data:', { amount, items, shipping });
 
@@ -123,55 +106,48 @@ module.exports = async function handler(req, res) {
             });
 
             // Simplify the insert query and add error handling
-            try {
-              console.log('Inserting order item with values:', {
-                orderId: order.id,
-                productId: item.id,
-                quantity: item.quantity,
-                price: product.price
-              });
+            console.log('Inserting order item with values:', {
+              orderId: order.id,
+              productId: item.id,
+              quantity: item.quantity,
+              price: product.price
+            });
 
-              const insertQuery = `
-                INSERT INTO order_items 
-                  (order_id, product_id, quantity, price_at_time) 
-                  VALUES (
-                    ${Number(order.id)},
-                    ${Number(item.id)},
-                    ${Number(item.quantity)},
-                    ${Number(product.price)}
-                  )
-              `;
-              
-              console.log('Executing query:', insertQuery);
-              await client.execute(insertQuery);
+            const insertQuery = `
+              INSERT INTO order_items 
+                (order_id, product_id, quantity, price_at_time) 
+                VALUES (
+                  ${Number(order.id)},
+                  ${Number(item.id)},
+                  ${Number(item.quantity)},
+                  ${Number(product.price)}
+                )
+            `;
+            
+            console.log('Executing query:', insertQuery);
+            await client.execute(insertQuery);
 
-              // Immediately verify the insert
-              const { rows: [insertedItem] } = await client.execute(`
-                SELECT * FROM order_items 
-                WHERE order_id = ${Number(order.id)} 
-                AND product_id = ${Number(item.id)}
-              `);
+            // Immediately verify the insert
+            const { rows: [insertedItem] } = await client.execute(`
+              SELECT * FROM order_items 
+              WHERE order_id = ${Number(order.id)} 
+              AND product_id = ${Number(item.id)}
+            `);
 
-              if (!insertedItem) {
-                throw new Error('Insert verification failed');
-              }
-
-              console.log('Order item inserted and verified:', insertedItem);
-
-              await client.execute(`
-                UPDATE products 
-                SET inventory_count = inventory_count - ${Number(item.quantity)}
-                WHERE id = ${Number(item.id)}
-              `);
-            } catch (error) {
-              console.error('Failed to process order item:', {
-                error: error.message,
-                item: item,
-                orderId: order.id
-              });
+            if (!insertedItem) {
+              throw new Error('Insert verification failed');
             }
+
+            console.log('Order item inserted and verified:', insertedItem);
+
+            await client.execute(`
+              UPDATE products 
+              SET inventory_count = inventory_count - ${Number(item.quantity)}
+              WHERE id = ${Number(item.id)}
+            `);
           } else {
             console.error('Product not found:', item.id);
+            throw new Error(`Product not found: ${item.id}`);
           }
         }
       } catch (dbError) {
