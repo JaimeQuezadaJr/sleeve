@@ -56,6 +56,47 @@ export default async function handler(req, res) {
         }
       });
 
+      try {
+        // Create order
+        const { rows: [order] } = await client.execute(
+          `INSERT INTO orders (
+            status,
+            total_amount,
+            shipping_address,
+            payment_intent_id
+          ) VALUES (?, ?, ?, ?) RETURNING id`,
+          [
+            'completed',
+            amount,
+            JSON.stringify(shipping),
+            paymentIntent.id
+          ]
+        );
+
+        // Create order items
+        for (const item of items) {
+          await client.execute(
+            `INSERT INTO order_items (
+              order_id,
+              product_id,
+              quantity,
+              price_at_time
+            ) VALUES (?, ?, ?, ?)`,
+            [
+              order.id,
+              item.id,
+              item.quantity,
+              item.price || 0  // Get actual price from products table
+            ]
+          );
+        }
+
+        console.log('Order created:', { orderId: order.id });
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        // Still return success since payment worked
+      }
+
       res.json({ clientSecret: paymentIntent.client_secret });
     } catch (err) {
       console.error('Server error:', err);
