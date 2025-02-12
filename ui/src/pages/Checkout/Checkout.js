@@ -196,7 +196,10 @@ const PaymentForm = () => {
         body: JSON.stringify({ 
           amount: cartTotal * 100,
           items: formattedItems,
-          shipping: shippingDetails
+          shipping: {
+            ...shippingDetails,
+            userId: user?.id || null
+          }
         })
       });
 

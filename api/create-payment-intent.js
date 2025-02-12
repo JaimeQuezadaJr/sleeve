@@ -60,8 +60,14 @@ export default async function handler(req, res) {
         // Create order
         const { rows: [order] } = await client.execute(
           `INSERT INTO orders 
-            (status, total_amount, shipping_address, payment_intent_id) 
-            VALUES ('completed', ${amount}, '${JSON.stringify(shipping)}', '${paymentIntent.id}')`
+            (status, total_amount, shipping_address, payment_intent_id, user_id) 
+            VALUES (
+              'completed', 
+              ${amount}, 
+              '${JSON.stringify(shipping)}', 
+              '${paymentIntent.id}',
+              ${shipping.userId || 'NULL'}
+            )`
         );
 
         // Get the inserted order id
@@ -79,14 +85,28 @@ export default async function handler(req, res) {
           await client.execute(
             `INSERT INTO order_items 
               (order_id, product_id, quantity, price_at_time) 
-              VALUES (${newOrder.id}, ${item.id}, ${item.quantity}, ${product.price})`
+              VALUES (
+                ${newOrder.id}, 
+                ${item.id}, 
+                ${item.quantity}, 
+                ${product.price}
+              )`
+          );
+
+          // Update inventory count
+          await client.execute(
+            `UPDATE products 
+            SET inventory_count = inventory_count - ${item.quantity} 
+            WHERE id = ${item.id}`
           );
         }
 
         console.log('Order created:', { 
           orderId: newOrder.id,
           amount,
-          items: items.length
+          items: items.length,
+          userId: shipping.userId || 'guest',
+          shipping: shipping.email
         });
       } catch (dbError) {
         console.error('Database error:', dbError);
