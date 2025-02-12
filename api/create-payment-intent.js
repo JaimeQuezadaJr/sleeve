@@ -79,17 +79,15 @@ module.exports = async function handler(req, res) {
         // Process order items
         const orderItems = [];
         for (const item of items) {
+          const { rows: [product] } = await client.execute(
+            `SELECT price, title FROM products WHERE id = ${item.id}`
+          );
+
           console.log('Processing item with full details:', {
             item,
             orderId: order.id,
             product
           });
-
-          const { rows: [product] } = await client.execute(
-            `SELECT price, title FROM products WHERE id = ${item.id}`
-          );
-
-          console.log('Found product:', product);
 
           if (product) {
             orderItems.push({
