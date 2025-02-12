@@ -89,99 +89,91 @@ module.exports = async function handler(req, res) {
         for (const item of items) {
           console.log(`Processing item ${item.id}...`);
           
-          try {
-            // First test if we can query anything
-            console.log('Testing database connection...');
-            await client.execute('SELECT 1');
-            console.log('Database connection successful');
+          // Add retry mechanism for database operations
+          const maxRetries = 3;
+          let retryCount = 0;
+          let lastError = null;
 
-            // Try simple product query
-            console.log('About to execute product query...');
-            const { rows } = await client.execute(
-              'SELECT * FROM products WHERE id = ?',
-              [item.id]
-            );
-            console.log('Query executed, rows:', rows);
-
-            if (!rows || rows.length === 0) {
-              throw new Error(`No product found with id ${item.id}`);
-            }
-
-            const [product] = rows;
-            console.log('Product found:', product);
-
-            if (!product) {
-              throw new Error(`Product ${item.id} not found`);
-            }
-            if (typeof product.price === 'undefined') {
-              throw new Error(`Product ${item.id} has no price`);
-            }
-
-            console.log('Processing item with full details:', {
-              item,
-              orderId: order.id,
-              product
-            });
-
-            console.log('Product found, preparing order item...');
-            orderItems.push({
-              quantity: item.quantity,
-              price: product.price,
-              title: product.title
-            });
-
-            console.log('Inserting order item with values:', {
-              orderId: order.id,
-              productId: item.id,
-              quantity: item.quantity,
-              price: product.price
-            });
-
-            const insertQuery = `
-              INSERT INTO order_items 
-                (order_id, product_id, quantity, price_at_time) 
-                VALUES (
-                  ${Number(order.id)},
-                  ${Number(item.id)},
-                  ${Number(item.quantity)},
-                  ${Number(product.price)}
-                )
-            `;
-            
-            console.log('Executing order item insert query:', insertQuery);
+          while (retryCount < maxRetries) {
             try {
-              console.log('Attempting to execute insert...');
-              await client.execute(insertQuery);
-              console.log('Insert executed successfully');
+              console.log('Testing database connection...');
+              await client.execute('SELECT 1');
+              console.log('Database connection successful');
 
-              // Immediately verify the insert
-              const verifyQuery = `
-                SELECT * FROM order_items 
-                WHERE order_id = ${Number(order.id)} 
-                AND product_id = ${Number(item.id)}
-              `;
-              console.log('Verifying insert with query:', verifyQuery);
-              const { rows: [insertedItem] } = await client.execute(verifyQuery);
-              console.log('Verification query result:', insertedItem);
+              console.log('About to execute product query...');
+              const { rows } = await client.execute(
+                'SELECT * FROM products WHERE id = ?',
+                [item.id]
+              );
+              console.log('Query executed, rows:', rows);
 
-              if (!insertedItem) {
-                throw new Error('Insert verification failed');
+              // If we get here, the query was successful
+              if (rows && rows.length > 0) {
+                const [product] = rows;
+                console.log('Product found:', product);
+
+                if (!product) {
+                  throw new Error(`Product ${item.id} not found`);
+                }
+                if (typeof product.price === 'undefined') {
+                  throw new Error(`Product ${item.id} has no price`);
+                }
+
+                console.log('Processing item with full details:', {
+                  item,
+                  orderId: order.id,
+                  product
+                });
+
+                console.log('Product found, preparing order item...');
+                orderItems.push({
+                  quantity: item.quantity,
+                  price: product.price,
+                  title: product.title
+                });
+
+                console.log('Inserting order item with values:', {
+                  orderId: order.id,
+                  productId: item.id,
+                  quantity: item.quantity,
+                  price: product.price
+                });
+
+                const insertQuery = `
+                  INSERT INTO order_items 
+                    (order_id, product_id, quantity, price_at_time) 
+                    VALUES (
+                      ${Number(order.id)},
+                      ${Number(item.id)},
+                      ${Number(item.quantity)},
+                      ${Number(product.price)}
+                    )
+                `;
+                
+                console.log('Executing order item insert query:', insertQuery);
+                await client.execute(insertQuery);
+
+                await client.execute(`
+                  UPDATE products 
+                  SET inventory_count = inventory_count - ${Number(item.quantity)}
+                  WHERE id = ${Number(item.id)}
+                `);
+
+                break; // Exit retry loop on success
               }
-
-              console.log('Order item inserted and verified:', insertedItem);
-            } catch (insertError) {
-              console.error('Error during insert or verify:', insertError);
-              throw insertError;
+            } catch (error) {
+              lastError = error;
+              retryCount++;
+              console.log(`Retry attempt ${retryCount} of ${maxRetries}`);
+              // Wait a bit before retrying
+              await new Promise(resolve => setTimeout(resolve, 1000));
             }
+          }
 
-            await client.execute(`
-              UPDATE products 
-              SET inventory_count = inventory_count - ${Number(item.quantity)}
-              WHERE id = ${Number(item.id)}
-            `);
-          } catch (productError) {
-            console.error('Product error:', productError);
-            throw productError;
+          // If we exhausted all retries, throw the last error
+          if (retryCount === maxRetries) {
+            console.error('All retry attempts failed:', lastError);
+            throw lastError;
           }
         }
       } catch (dbError) {
