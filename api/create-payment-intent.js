@@ -61,13 +61,7 @@ export default async function handler(req, res) {
         const { rows: [order] } = await client.execute(
           `INSERT INTO orders 
             (status, total_amount, shipping_address, payment_intent_id) 
-            VALUES (?, ?, ?, ?)`,
-          [
-            'completed',
-            amount,
-            JSON.stringify(shipping),
-            paymentIntent.id
-          ]
+            VALUES ('completed', ${amount}, '${JSON.stringify(shipping)}', '${paymentIntent.id}')`
         );
 
         // Get the inserted order id
@@ -79,20 +73,13 @@ export default async function handler(req, res) {
         for (const item of items) {
           // Get product price
           const { rows: [product] } = await client.execute(
-            'SELECT price FROM products WHERE id = ?',
-            [item.id]
+            `SELECT price FROM products WHERE id = ${item.id}`
           );
 
           await client.execute(
             `INSERT INTO order_items 
               (order_id, product_id, quantity, price_at_time) 
-              VALUES (?, ?, ?, ?)`,
-            [
-              newOrder.id,
-              item.id,
-              item.quantity,
-              product.price
-            ]
+              VALUES (${newOrder.id}, ${item.id}, ${item.quantity}, ${product.price})`
           );
         }
 
