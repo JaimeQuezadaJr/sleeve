@@ -19,6 +19,18 @@ export default async function handler(req, res) {
     // Get all products
     const { rows: products } = await client.execute('SELECT * FROM products');
 
+    // Get all orders with their items
+    const { rows: orders } = await client.execute(`
+      SELECT 
+        o.*,
+        oi.product_id,
+        oi.quantity,
+        oi.price_at_time
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      ORDER BY o.created_at DESC
+    `);
+
     // Get count of products
     const { rows: count } = await client.execute('SELECT COUNT(*) as count FROM products');
 
@@ -26,6 +38,7 @@ export default async function handler(req, res) {
       schema: schema[0]?.sql,
       productCount: count[0]?.count,
       products,
+      orders,
       connection: {
         url: process.env.TURSO_DATABASE_URL ? 'Set' : 'Missing',
         auth: process.env.TURSO_AUTH_TOKEN ? 'Set' : 'Missing'
