@@ -21,6 +21,10 @@ const transporter = nodemailer.createTransport({
 async function sendOrderConfirmation(orderDetails, shipping) {
   const { email, name, orderId, items, total } = orderDetails;
   
+  if (!shipping) {
+    throw new Error('Shipping details are required for order confirmation email');
+  }
+
   const itemsHtml = items.map(item => `
     <tr>
       <td style="padding: 10px;">${item.title}</td>
@@ -88,6 +92,9 @@ module.exports = async function handler(req, res) {
     const { amount, items, shipping } = req.body;
     
     try {
+      // Log request data for debugging
+      console.log('Request data:', { amount, items, shipping });
+
       // Validate items array
       if (!Array.isArray(items) || items.length === 0) {
         throw new Error('Invalid items array');
@@ -108,6 +115,7 @@ module.exports = async function handler(req, res) {
         }
       }
 
+      // Create payment intent first
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: 'usd',
@@ -117,6 +125,10 @@ module.exports = async function handler(req, res) {
         }
       });
 
+      // Send the client secret immediately
+      res.json({ clientSecret: paymentIntent.client_secret });
+
+      // Handle order creation and email after responding
       try {
         // Create order
         const { rows: [order] } = await client.execute(
@@ -132,47 +144,41 @@ module.exports = async function handler(req, res) {
         );
 
         if (!order || !order.id) {
-          throw new Error('Failed to get new order ID');
+          console.error('Failed to create order');
+          return;
         }
 
-        // Create order items
-        const orderItems = [];  // Store items with their details
+        // Process order items and send email
+        const orderItems = [];
         for (const item of items) {
-          // Get product price
           const { rows: [product] } = await client.execute(
             `SELECT price, title FROM products WHERE id = ${item.id}`
           );
 
-          if (!product) {
-            throw new Error(`Product not found: ${item.id}`);
+          if (product) {
+            orderItems.push({
+              quantity: item.quantity,
+              price: product.price,
+              title: product.title
+            });
+
+            await client.execute(
+              `INSERT INTO order_items 
+                (order_id, product_id, quantity, price_at_time) 
+                VALUES (?, ?, ?, ?)`,
+              [order.id, item.id, item.quantity, product.price]
+            );
+
+            await client.execute(
+              `UPDATE products 
+              SET inventory_count = inventory_count - ? 
+              WHERE id = ?`,
+              [item.quantity, item.id]
+            );
           }
-
-          // Store item details for email
-          orderItems.push({
-            quantity: item.quantity,
-            price: product.price,
-            title: product.title
-          });
-
-          await client.execute(
-            `INSERT INTO order_items 
-              (order_id, product_id, quantity, price_at_time) 
-              VALUES (
-                ${order.id}, 
-                ${item.id}, 
-                ${item.quantity}, 
-                ${product.price}
-              )`
-          );
-
-          await client.execute(
-            `UPDATE products 
-            SET inventory_count = inventory_count - ${item.quantity} 
-            WHERE id = ${item.id}`
-          );
         }
 
-        // Send order confirmation email
+        // Send email after everything else is done
         try {
           await sendOrderConfirmation({
             email: shipping.email,
@@ -182,16 +188,16 @@ module.exports = async function handler(req, res) {
             total: amount
           }, shipping);
         } catch (emailError) {
-          // Don't throw email errors - order was still successful
-          console.error('Failed to send confirmation email:', emailError);
+          console.error('Email error:', emailError);
         }
-
-        res.json({ clientSecret: paymentIntent.client_secret });
       } catch (dbError) {
-        throw dbError;
+        console.error('Database error:', dbError);
       }
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Payment intent error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: err.message });
+      }
     }
   }
 } 
