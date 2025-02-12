@@ -162,10 +162,8 @@ const PaymentForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setProcessing(true);
-    console.log('Starting payment process...');
 
     if (!stripe || !elements) {
-      console.log('Stripe not initialized');
       return;
     }
 
@@ -177,15 +175,6 @@ const PaymentForm = () => {
           id,
           quantity: Number(item.quantity)
         };
-      });
-
-      // Log exact data being sent
-      console.log('Sending to API:', {
-        items: formattedItems,
-        itemTypes: formattedItems.map(item => ({
-          id: item.id,
-          idType: typeof item.id
-        }))
       });
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent/`, {
@@ -204,13 +193,10 @@ const PaymentForm = () => {
       });
 
       const data = await response.json();
-      console.log('Payment intent response:', data);
 
       if (data.error) {
-        console.error('Server error:', data.error);
         setError(data.error.message);
       } else if (data.clientSecret) {
-        console.log('Payment intent created:', data.clientSecret);
         const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
           data.clientSecret,
           {
@@ -232,10 +218,8 @@ const PaymentForm = () => {
         );
 
         if (stripeError) {
-          console.error('Stripe error:', stripeError);
           setError(stripeError.message);
         } else if (paymentIntent.status === 'succeeded') {
-          console.log('Payment successful:', paymentIntent);
           clearCart();
           setSuccess(true);
           setTimeout(() => {
@@ -244,7 +228,6 @@ const PaymentForm = () => {
         }
       }
     } catch (err) {
-      console.error('Payment error:', err);
       setError('An error occurred while processing your payment.');
     }
 
