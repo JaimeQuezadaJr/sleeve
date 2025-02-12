@@ -170,22 +170,13 @@ const PaymentForm = () => {
     }
 
     try {
-      // Debug cart items structure
-      console.log('Cart Items Structure:', cartItems.map(item => ({
-        item,
-        hasProduct: !!item.product,
-        directId: item.id,
-        type: typeof item
-      })));
+      // Transform cart items to the correct structure
+      const formattedItems = cartItems.map(item => ({
+        id: item.directId || item.id,  // Use directId if available
+        quantity: item.quantity
+      }));
 
-      console.log('Creating payment intent:', {
-        amount: cartTotal * 100,
-        items: cartItems.map(item => ({
-          id: item.id,  // Try using direct ID first
-          quantity: item.quantity
-        })),
-        shipping: shippingDetails
-      });
+      console.log('Formatted items:', formattedItems);
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent`, {
         method: 'POST',
@@ -194,10 +185,7 @@ const PaymentForm = () => {
         },
         body: JSON.stringify({ 
           amount: cartTotal * 100,
-          items: cartItems.map(item => ({
-            id: item.id,  // Try using direct ID first
-            quantity: item.quantity
-          })),
+          items: formattedItems,
           shipping: shippingDetails
         })
       });
