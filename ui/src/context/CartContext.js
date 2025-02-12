@@ -24,7 +24,12 @@ export const CartProvider = ({ children }) => {
             : item
         );
       }
-      return [...prevItems, { ...product, quantity: 1 }];
+      return [...prevItems, { 
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        quantity: 1
+      }];
     });
   };
 

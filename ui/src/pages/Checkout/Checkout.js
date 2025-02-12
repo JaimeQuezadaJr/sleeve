@@ -246,58 +246,44 @@ const PaymentForm = () => {
     }
 
     try {
-      // Transform cart items to the correct structure
-      const formattedItems = cartItems.map(item => {
-        const id = Number(item.directId || item.id);
-        return {
-          id,
-          quantity: Number(item.quantity)
-        };
-      });
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          amount: cartTotal * 100,
-          items: formattedItems,
-          shipping: {
-            ...shippingDetails,
-            userId: null
-          }
-        })
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/create-payment-intent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: cartTotal,
+            items: cartItems.map(item => ({
+              id: item.id,
+              quantity: item.quantity,
+              title: item.title,
+              price: item.price
+            })),
+            shipping: shippingDetails,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (data.error) {
         setError(data.error.message);
       } else if (data.clientSecret) {
-        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
+        const { error: stripeError } = await stripe.confirmCardPayment(
           data.clientSecret,
           {
             payment_method: {
               card: elements.getElement(CardElement),
-              billing_details: {
-                name: shippingDetails.name,
-                email: shippingDetails.email,
-                address: {
-                  line1: shippingDetails.address,
-                  city: shippingDetails.city,
-                  state: shippingDetails.state,
-                  postal_code: shippingDetails.zipCode,
-                  country: shippingDetails.country
-                }
-              }
-            }
+            },
+            receipt_email: shippingDetails.email,
           }
         );
 
         if (stripeError) {
           setError(stripeError.message);
-        } else if (paymentIntent.status === 'succeeded') {
+        } else if (data.paymentIntent.status === 'succeeded') {
           clearCart();
           setSuccess(true);
           setTimeout(() => {
