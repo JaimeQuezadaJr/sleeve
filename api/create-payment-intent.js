@@ -144,6 +144,7 @@ module.exports = async function handler(req, res) {
 
         // Send email after everything else is done
         try {
+          console.log('Attempting to send email to:', shipping.email);
           await sendOrderConfirmation({
             email: shipping.email,
             name: shipping.name,
@@ -151,8 +152,14 @@ module.exports = async function handler(req, res) {
             items: orderItems,
             total: amount
           }, shipping);
+          console.log('Email sent successfully');
         } catch (emailError) {
-          console.error('Email error:', emailError);
+          console.error('Email error details:', {
+            error: emailError.message,
+            stack: emailError.stack,
+            code: emailError.code,
+            command: emailError.command
+          });
         }
       } catch (dbError) {
         console.error('Database error:', dbError);
