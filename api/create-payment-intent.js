@@ -57,6 +57,7 @@ export default async function handler(req, res) {
       });
 
       try {
+        console.log('Starting database operations...');
         // Create order
         const { rows: [order] } = await client.execute(
           `INSERT INTO orders 
@@ -69,26 +70,32 @@ export default async function handler(req, res) {
               ${shipping.userId || 'NULL'}
             )`
         );
+        console.log('Order insert completed:', order);
 
         // Get the inserted order id
         const { rows: [newOrder] } = await client.execute(
           'SELECT last_insert_rowid() as id'
         );
+        console.log('Created order:', newOrder);
 
-        console.log('Created order:', newOrder); // Debug order creation
+        if (!newOrder || !newOrder.id) {
+          throw new Error('Failed to get new order ID');
+        }
 
         // Create order items
         for (const item of items) {
+          console.log('Processing item for order:', item);
           // Get product price
           const { rows: [product] } = await client.execute(
             `SELECT price FROM products WHERE id = ${item.id}`
           );
+          console.log('Found product:', product);
 
           if (!product) {
-            console.error('Product not found:', item.id);
-            continue;
+            throw new Error(`Product not found: ${item.id}`);
           }
 
+          console.log('Inserting order item...');
           await client.execute(
             `INSERT INTO order_items 
               (order_id, product_id, quantity, price_at_time) 
@@ -123,8 +130,12 @@ export default async function handler(req, res) {
           shipping: shipping.email
         });
       } catch (dbError) {
-        console.error('Database error:', dbError);
-        // Still return success since payment worked
+        console.error('Database error:', {
+          message: dbError.message,
+          stack: dbError.stack,
+          error: dbError
+        });
+        throw dbError; // Let's see the error in the response
       }
 
       res.json({ clientSecret: paymentIntent.client_secret });
