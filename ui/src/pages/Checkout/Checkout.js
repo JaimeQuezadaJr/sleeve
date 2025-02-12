@@ -66,6 +66,23 @@ const Input = styled.input`
     outline: none;
     border-color: #000;
   }
+  
+  /* Style select element to match other inputs */
+  &[as="select"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+
+  /* Remove default arrow in IE */
+  &::-ms-expand {
+    display: none;
+  }
 `;
 
 const CardContainer = styled.div`
@@ -148,7 +165,7 @@ const PaymentForm = () => {
     city: '',
     state: '',
     zipCode: '',
-    country: 'United States'
+    country: 'US'
   });
 
   const states = [
@@ -369,7 +386,7 @@ const PaymentForm = () => {
               <Input
                 type="text"
                 name="country"
-                value={shippingDetails.country}
+                value="United States"
                 disabled
                 required
               />
