@@ -82,7 +82,7 @@ module.exports = async function handler(req, res) {
           console.log('Processing item with full details:', {
             item,
             orderId: order.id,
-            productDetails: product
+            product
           });
 
           const { rows: [product] } = await client.execute(
