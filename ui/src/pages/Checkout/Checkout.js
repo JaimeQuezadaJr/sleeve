@@ -198,7 +198,7 @@ const PaymentForm = () => {
           items: formattedItems,
           shipping: {
             ...shippingDetails,
-            userId: user?.id || null
+            userId: user.id || null
           }
         })
       });
