@@ -68,17 +68,11 @@ export default async function handler(req, res) {
               '${JSON.stringify(shipping)}', 
               '${paymentIntent.id}',
               ${shipping.userId || 'NULL'}
-            )`
+            ) RETURNING id`
         );
         console.log('Order insert completed:', order);
 
-        // Get the inserted order id
-        const { rows: [newOrder] } = await client.execute(
-          'SELECT last_insert_rowid() as id'
-        );
-        console.log('Created order:', newOrder);
-
-        if (!newOrder || !newOrder.id) {
+        if (!order || !order.id) {
           throw new Error('Failed to get new order ID');
         }
 
@@ -100,7 +94,7 @@ export default async function handler(req, res) {
             `INSERT INTO order_items 
               (order_id, product_id, quantity, price_at_time) 
               VALUES (
-                ${newOrder.id}, 
+                ${order.id}, 
                 ${item.id}, 
                 ${item.quantity}, 
                 ${product.price}
@@ -108,7 +102,7 @@ export default async function handler(req, res) {
           );
 
           console.log('Created order item:', {
-            orderId: newOrder.id,
+            orderId: order.id,
             productId: item.id,
             quantity: item.quantity,
             price: product.price
@@ -123,7 +117,7 @@ export default async function handler(req, res) {
         }
 
         console.log('Order created:', { 
-          orderId: newOrder.id,
+          orderId: order.id,
           amount,
           items: items.length,
           userId: shipping.userId || 'guest',
