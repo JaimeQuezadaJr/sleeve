@@ -17,26 +17,24 @@ export default async function handler(req, res) {
 
       // Verify inventory
       for (const item of items) {
-        // Convert ID to string and remove any whitespace
-        const cleanId = item.id.toString().trim();
+        // Ensure ID is a number
+        const productId = Number(item.id);
         
-        // Log each item being processed
         console.log('Processing item:', {
           item,
           idType: typeof item.id,
           idValue: item.id,
-          cleanId
+          productId
         });
 
         const { rows } = await client.execute(
-          'SELECT inventory_count FROM products WHERE id = $1',
-          [cleanId]
+          'SELECT inventory_count FROM products WHERE id = ?',
+          [productId]
         );
         
-        // Log the query results
         console.log('Query results:', {
-          sql: 'SELECT inventory_count FROM products WHERE id = $1',
-          params: [cleanId],
+          sql: 'SELECT inventory_count FROM products WHERE id = ?',
+          params: [productId],
           rowCount: rows.length,
           firstRow: rows[0]
         });
