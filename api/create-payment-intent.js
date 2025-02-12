@@ -79,7 +79,12 @@ module.exports = async function handler(req, res) {
         // Process order items
         const orderItems = [];
         for (const item of items) {
-          console.log('Processing item:', item);
+          console.log('Processing item with full details:', {
+            item,
+            orderId: order.id,
+            productDetails: product
+          });
+
           const { rows: [product] } = await client.execute(
             `SELECT price, title FROM products WHERE id = ${item.id}`
           );
@@ -93,22 +98,36 @@ module.exports = async function handler(req, res) {
               title: product.title
             });
 
-            await client.execute(
-              `INSERT INTO order_items 
+            const insertQuery = `
+              INSERT INTO order_items 
                 (order_id, product_id, quantity, price_at_time) 
                 VALUES (
                   ${order.id},
                   ${item.id},
                   ${item.quantity},
                   ${product.price}
-                )`
+                )`;
+            
+            console.log('Executing order items insert query:', insertQuery);
+
+            await client.execute(
+              insertQuery
             );
+
+            // Verify the insert
+            const { rows: [insertedItem] } = await client.execute(
+              `SELECT * FROM order_items WHERE order_id = ${order.id} AND product_id = ${item.id}`
+            );
+            console.log('Inserted order item:', insertedItem);
 
             await client.execute(
               `UPDATE products 
               SET inventory_count = inventory_count - ${item.quantity}
               WHERE id = ${item.id}`
             );
+          }
+          else {
+            console.error('Product not found:', item.id);
           }
         }
       } catch (dbError) {
