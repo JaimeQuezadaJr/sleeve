@@ -1,55 +1,11 @@
 const { createClient } = require('@libsql/client');
 const Stripe = require('stripe');
-const nodemailer = require('nodemailer');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const client = createClient({
   url: process.env.TURSO_DATABASE_URL,
   authToken: process.env.TURSO_AUTH_TOKEN
 });
-
-// Create email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
-  }
-});
-
-// Email sending function
-async function sendOrderConfirmation(orderDetails) {
-  const { email, name, orderId, items, total } = orderDetails;
-
-  const itemsList = items.map(item => 
-    `${item.quantity}x ${item.title} - $${(item.price * item.quantity / 100).toFixed(2)}`
-  ).join('\n');
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: `Order Confirmation #${orderId}`,
-    text: `
-      Hi ${name},
-
-      Thank you for your order! Here are your order details:
-
-      Order #: ${orderId}
-      
-      Items:
-      ${itemsList}
-
-      Total: $${(total / 100).toFixed(2)}
-
-      We'll notify you when your order ships.
-
-      Best regards,
-      Sleeve Nine Team
-    `
-  };
-
-  return transporter.sendMail(mailOptions);
-}
 
 module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
@@ -169,20 +125,7 @@ module.exports = async function handler(req, res) {
           shipping: shipping.email
         });
 
-        // Send order confirmation email
-        try {
-          await sendOrderConfirmation({
-            email: shipping.email,
-            name: shipping.name,
-            orderId: order.id,
-            items: orderItems,  // Use stored items with details
-            total: amount
-          });
-          console.log('Order confirmation email sent');
-        } catch (emailError) {
-          console.error('Failed to send email:', emailError);
-          // Don't throw error since order was successful
-        }
+        res.json({ clientSecret: paymentIntent.client_secret });
       } catch (dbError) {
         console.error('Database error:', {
           message: dbError.message,
@@ -191,8 +134,6 @@ module.exports = async function handler(req, res) {
         });
         throw dbError; // Let's see the error in the response
       }
-
-      res.json({ clientSecret: paymentIntent.client_secret });
     } catch (err) {
       console.error('Server error:', err);
       res.status(500).json({ error: err.message });
