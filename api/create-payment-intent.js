@@ -1,11 +1,55 @@
 const { createClient } = require('@libsql/client');
 const Stripe = require('stripe');
+const nodemailer = require('nodemailer');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const client = createClient({
   url: process.env.TURSO_DATABASE_URL,
   authToken: process.env.TURSO_AUTH_TOKEN
 });
+
+// Create email transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+// Email sending function
+async function sendOrderConfirmation(orderDetails) {
+  const { email, name, orderId, items, total } = orderDetails;
+  
+  const itemsList = items.map(item => 
+    `${item.quantity}x ${item.title} - $${(item.price * item.quantity / 100).toFixed(2)}`
+  ).join('\n');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Order Confirmation #${orderId}`,
+    text: `
+      Hi ${name},
+
+      Thank you for your order! Here are your order details:
+
+      Order #: ${orderId}
+      
+      Items:
+      ${itemsList}
+
+      Total: $${(total / 100).toFixed(2)}
+
+      We'll notify you when your order ships.
+
+      Best regards,
+      Sleeve Team
+    `
+  };
+
+  return transporter.sendMail(mailOptions);
+}
 
 module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
@@ -94,6 +138,20 @@ module.exports = async function handler(req, res) {
             SET inventory_count = inventory_count - ${item.quantity} 
             WHERE id = ${item.id}`
           );
+        }
+
+        // Send order confirmation email
+        try {
+          await sendOrderConfirmation({
+            email: shipping.email,
+            name: shipping.name,
+            orderId: order.id,
+            items: orderItems,
+            total: amount
+          });
+        } catch (emailError) {
+          // Don't throw email errors - order was still successful
+          console.error('Failed to send confirmation email:', emailError);
         }
 
         res.json({ clientSecret: paymentIntent.client_secret });
