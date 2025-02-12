@@ -171,17 +171,22 @@ const PaymentForm = () => {
 
     try {
       // Transform cart items to the correct structure
-      const formattedItems = cartItems.map(item => ({
-        id: parseInt(item.directId || item.id),  // Ensure it's a number
-        quantity: item.quantity
-      }));
+      const formattedItems = cartItems.map(item => {
+        const id = Number(item.directId || item.id);
+        return {
+          id,
+          quantity: Number(item.quantity)
+        };
+      });
 
-      // Validate items before sending
-      if (!formattedItems.every(item => Number.isInteger(item.id))) {
-        throw new Error('Invalid product ID');
-      }
-
-      console.log('Formatted items:', formattedItems);
+      // Log exact data being sent
+      console.log('Sending to API:', {
+        items: formattedItems,
+        itemTypes: formattedItems.map(item => ({
+          id: item.id,
+          idType: typeof item.id
+        }))
+      });
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent`, {
         method: 'POST',

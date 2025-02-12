@@ -15,26 +15,31 @@ export default async function handler(req, res) {
       // Log the raw request
       console.log('Raw items:', JSON.stringify(items, null, 2));
 
+      // Validate items array
+      if (!Array.isArray(items) || items.length === 0) {
+        throw new Error('Invalid items array');
+      }
+
       // Verify inventory
       for (const item of items) {
-        // Ensure ID is a number
-        const productId = Number(item.id);
-        
+        if (typeof item.id !== 'number') {
+          throw new Error(`Invalid item ID type: ${typeof item.id}`);
+        }
+
         console.log('Processing item:', {
           item,
           idType: typeof item.id,
           idValue: item.id,
-          productId
         });
 
         const { rows } = await client.execute(
           'SELECT inventory_count FROM products WHERE id = ?',
-          [productId]
+          [item.id]
         );
         
         console.log('Query results:', {
           sql: 'SELECT inventory_count FROM products WHERE id = ?',
-          params: [productId],
+          params: [item.id],
           rowCount: rows.length,
           firstRow: rows[0]
         });
