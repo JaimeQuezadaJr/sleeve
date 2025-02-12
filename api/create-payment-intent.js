@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Email sending function
-async function sendOrderConfirmation(orderDetails) {
+async function sendOrderConfirmation(orderDetails, shipping) {
   const { email, name, orderId, items, total } = orderDetails;
   
   const itemsHtml = items.map(item => `
@@ -180,7 +180,7 @@ module.exports = async function handler(req, res) {
             orderId: order.id,
             items: orderItems,
             total: amount
-          });
+          }, shipping);
         } catch (emailError) {
           // Don't throw email errors - order was still successful
           console.error('Failed to send confirmation email:', emailError);
