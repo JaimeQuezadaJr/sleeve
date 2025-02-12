@@ -188,7 +188,7 @@ const PaymentForm = () => {
         }))
       });
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/create-payment-intent/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
