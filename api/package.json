@@ -2,7 +2,6 @@
   "dependencies": {
     "@vercel/node": "^3.0.0",
     "@libsql/client": "^0.3.6",
-    "stripe": "^17.x",
-    "nodemailer": "^6.x"
+    "stripe": "^17.x"
   }
 } 
