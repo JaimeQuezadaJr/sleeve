@@ -90,21 +90,32 @@ module.exports = async function handler(req, res) {
           console.log(`Processing item ${item.id}...`);
           
           // Log the product query
-          const productQuery = `SELECT price, title FROM products WHERE id = ${item.id}`;
+          const productQuery = `
+            SELECT id, price, title, inventory_count 
+            FROM products 
+            WHERE id = ${Number(item.id)}
+            LIMIT 1
+          `;
           console.log('Executing product query:', productQuery);
           
-          const { rows: [product] } = await client.execute(
-            productQuery
-          );
-          console.log('Product query result:', product);
+          try {
+            const { rows: [product] } = await client.execute(
+              productQuery
+            );
+            if (!product) {
+              throw new Error(`Product ${item.id} not found`);
+            }
+            if (typeof product.price === 'undefined') {
+              throw new Error(`Product ${item.id} has no price`);
+            }
+            console.log('Product query result:', product);
 
-          console.log('Processing item with full details:', {
-            item,
-            orderId: order.id,
-            product
-          });
+            console.log('Processing item with full details:', {
+              item,
+              orderId: order.id,
+              product
+            });
 
-          if (product) {
             console.log('Product found, preparing order item...');
             orderItems.push({
               quantity: item.quantity,
@@ -161,9 +172,9 @@ module.exports = async function handler(req, res) {
               SET inventory_count = inventory_count - ${Number(item.quantity)}
               WHERE id = ${Number(item.id)}
             `);
-          } else {
-            console.error('Product not found:', item.id);
-            throw new Error(`Product not found: ${item.id}`);
+          } catch (productError) {
+            console.error('Product error:', productError);
+            throw productError;
           }
         }
       } catch (dbError) {
