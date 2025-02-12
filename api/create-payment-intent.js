@@ -88,9 +88,15 @@ module.exports = async function handler(req, res) {
         const orderItems = [];
         for (const item of items) {
           console.log(`Processing item ${item.id}...`);
+          
+          // Log the product query
+          const productQuery = `SELECT price, title FROM products WHERE id = ${item.id}`;
+          console.log('Executing product query:', productQuery);
+          
           const { rows: [product] } = await client.execute(
-            `SELECT price, title FROM products WHERE id = ${item.id}`
+            productQuery
           );
+          console.log('Product query result:', product);
 
           console.log('Processing item with full details:', {
             item,
@@ -99,13 +105,13 @@ module.exports = async function handler(req, res) {
           });
 
           if (product) {
+            console.log('Product found, preparing order item...');
             orderItems.push({
               quantity: item.quantity,
               price: product.price,
               title: product.title
             });
 
-            // Simplify the insert query and add error handling
             console.log('Inserting order item with values:', {
               orderId: order.id,
               productId: item.id,
@@ -124,21 +130,31 @@ module.exports = async function handler(req, res) {
                 )
             `;
             
-            console.log('Executing query:', insertQuery);
-            await client.execute(insertQuery);
+            console.log('Executing order item insert query:', insertQuery);
+            try {
+              console.log('Attempting to execute insert...');
+              await client.execute(insertQuery);
+              console.log('Insert executed successfully');
 
-            // Immediately verify the insert
-            const { rows: [insertedItem] } = await client.execute(`
-              SELECT * FROM order_items 
-              WHERE order_id = ${Number(order.id)} 
-              AND product_id = ${Number(item.id)}
-            `);
+              // Immediately verify the insert
+              const verifyQuery = `
+                SELECT * FROM order_items 
+                WHERE order_id = ${Number(order.id)} 
+                AND product_id = ${Number(item.id)}
+              `;
+              console.log('Verifying insert with query:', verifyQuery);
+              const { rows: [insertedItem] } = await client.execute(verifyQuery);
+              console.log('Verification query result:', insertedItem);
 
-            if (!insertedItem) {
-              throw new Error('Insert verification failed');
+              if (!insertedItem) {
+                throw new Error('Insert verification failed');
+              }
+
+              console.log('Order item inserted and verified:', insertedItem);
+            } catch (insertError) {
+              console.error('Error during insert or verify:', insertError);
+              throw insertError;
             }
-
-            console.log('Order item inserted and verified:', insertedItem);
 
             await client.execute(`
               UPDATE products 
