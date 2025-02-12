@@ -95,6 +95,12 @@ module.exports = async function handler(req, res) {
       // Handle order creation and email after responding
       try {
         // Create order
+        console.log('Creating order with data:', {
+          amount,
+          shipping,
+          paymentIntentId: paymentIntent.id
+        });
+
         const { rows: [order] } = await client.execute(
           `INSERT INTO orders 
             (status, total_amount, shipping_address, payment_intent_id, user_id) 
@@ -107,17 +113,22 @@ module.exports = async function handler(req, res) {
             ) RETURNING id`
         );
 
+        console.log('Order created:', order);
+
         if (!order || !order.id) {
           console.error('Failed to create order');
           return;
         }
 
-        // Process order items and send email
+        // Process order items
         const orderItems = [];
         for (const item of items) {
+          console.log('Processing item:', item);
           const { rows: [product] } = await client.execute(
             `SELECT price, title FROM products WHERE id = ${item.id}`
           );
+
+          console.log('Found product:', product);
 
           if (product) {
             orderItems.push({
@@ -129,15 +140,18 @@ module.exports = async function handler(req, res) {
             await client.execute(
               `INSERT INTO order_items 
                 (order_id, product_id, quantity, price_at_time) 
-                VALUES (?, ?, ?, ?)`,
-              [order.id, item.id, item.quantity, product.price]
+                VALUES (
+                  ${order.id},
+                  ${item.id},
+                  ${item.quantity},
+                  ${product.price}
+                )`
             );
 
             await client.execute(
               `UPDATE products 
-              SET inventory_count = inventory_count - ? 
-              WHERE id = ?`,
-              [item.quantity, item.id]
+              SET inventory_count = inventory_count - ${item.quantity}
+              WHERE id = ${item.id}`
             );
           }
         }
@@ -145,6 +159,13 @@ module.exports = async function handler(req, res) {
         // Send email after everything else is done
         try {
           console.log('Attempting to send email to:', shipping.email);
+          console.log('Email details:', {
+            from: process.env.EMAIL_USER,
+            to: shipping.email,
+            orderId: order.id,
+            itemCount: orderItems.length,
+            total: amount
+          });
           await sendOrderConfirmation({
             email: shipping.email,
             name: shipping.name,
@@ -158,7 +179,11 @@ module.exports = async function handler(req, res) {
             error: emailError.message,
             stack: emailError.stack,
             code: emailError.code,
-            command: emailError.command
+            command: emailError.command,
+            emailConfig: {
+              user: process.env.EMAIL_USER ? 'Set' : 'Not set',
+              pass: process.env.EMAIL_PASSWORD ? 'Set' : 'Not set'
+            }
           });
         }
       } catch (dbError) {
