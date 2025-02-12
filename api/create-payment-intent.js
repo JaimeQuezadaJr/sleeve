@@ -1,6 +1,6 @@
-import { createClient } from '@libsql/client';
-import Stripe from 'stripe';
-import { sendOrderConfirmation } from './emailService';
+const { createClient } = require('@libsql/client');
+const Stripe = require('stripe');
+const nodemailer = require('nodemailer');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const client = createClient({
@@ -8,7 +8,50 @@ const client = createClient({
   authToken: process.env.TURSO_AUTH_TOKEN
 });
 
-export default async function handler(req, res) {
+// Create email transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+// Email sending function
+async function sendOrderConfirmation(orderDetails) {
+  const { email, name, orderId, items, total } = orderDetails;
+
+  const itemsList = items.map(item => 
+    `${item.quantity}x ${item.title} - $${(item.price * item.quantity / 100).toFixed(2)}`
+  ).join('\n');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Order Confirmation #${orderId}`,
+    text: `
+      Hi ${name},
+
+      Thank you for your order! Here are your order details:
+
+      Order #: ${orderId}
+      
+      Items:
+      ${itemsList}
+
+      Total: $${(total / 100).toFixed(2)}
+
+      We'll notify you when your order ships.
+
+      Best regards,
+      Sleeve Nine Team
+    `
+  };
+
+  return transporter.sendMail(mailOptions);
+}
+
+module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     const { amount, items, shipping } = req.body;
     
