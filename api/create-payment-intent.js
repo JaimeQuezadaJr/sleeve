@@ -102,10 +102,6 @@ module.exports = async function handler(req, res) {
           console.log(`Processing item ${item.id}...`);
           
           try {
-            console.log('Testing database connection...');
-            await client.execute('SELECT 1');
-            console.log('Database connection successful');
-
             console.log('About to execute product query...');
             const { rows } = await client.execute(
               'SELECT * FROM products WHERE id = ?',
@@ -114,12 +110,6 @@ module.exports = async function handler(req, res) {
             console.log('Query executed, rows:', rows);
 
             const [product] = rows;
-            console.log('Found product in database:', {
-              id: product.id,
-              price: product.price,
-              title: product.title,
-              inventory: product.inventory_count
-            });
 
             if (!product) {
               throw new Error(`Product ${item.id} not found`);
@@ -127,12 +117,6 @@ module.exports = async function handler(req, res) {
             if (typeof product.price === 'undefined') {
               throw new Error(`Product ${item.id} has no price`);
             }
-
-            console.log('Processing item with full details:', {
-              item,
-              orderId: order.id,
-              product
-            });
 
             console.log('Product found, preparing order item...');
             orderItems.push({
@@ -159,7 +143,6 @@ module.exports = async function handler(req, res) {
                 )
             `;
             
-            console.log('Executing order item insert query:', insertQuery);
             await client.execute(insertQuery);
 
             await client.execute(`
