@@ -1,6 +1,6 @@
 import { createClient } from '@libsql/client';
 import Stripe from 'stripe';
-import { sendOrderConfirmation } from '../../server/services/emailService';
+import { sendOrderConfirmation } from './emailService';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const client = createClient({
