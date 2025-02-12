@@ -21,66 +21,30 @@ const transporter = nodemailer.createTransport({
 async function sendOrderConfirmation(orderDetails, shipping) {
   const { email, name, orderId, items, total } = orderDetails;
   
-  if (!shipping) {
-    throw new Error('Shipping details are required for order confirmation email');
-  }
-
-  const itemsHtml = items.map(item => `
-    <tr>
-      <td style="padding: 10px;">${item.title}</td>
-      <td style="padding: 10px; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; text-align: right;">$${(item.price / 100).toFixed(2)}</td>
-      <td style="padding: 10px; text-align: right;">$${(item.price * item.quantity / 100).toFixed(2)}</td>
-    </tr>
-  `).join('');
+  const itemsList = items.map(item => 
+    `${item.quantity}x ${item.title} - $${(item.price * item.quantity / 100).toFixed(2)}`
+  ).join('\n');
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: 'SLEEVE - Order Confirmation',
-    html: `
-      <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; color: #fff; background: #1a1a1a; padding: 20px;">
-        <h1 style="color: #fff; font-size: 24px; margin-bottom: 20px;">Order Confirmation</h1>
-        <p style="margin-bottom: 20px;">Thank you for your order, ${name}!</p>
-        
-        <p style="margin-bottom: 10px;">Order ID: ${orderId}</p>
-        
-        <h2 style="color: #fff; font-size: 18px; margin: 20px 0;">Order Details:</h2>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <thead>
-            <tr style="border-bottom: 1px solid #333;">
-              <th style="padding: 10px; text-align: left;">Product</th>
-              <th style="padding: 10px; text-align: center;">Quantity</th>
-              <th style="padding: 10px; text-align: right;">Price</th>
-              <th style="padding: 10px; text-align: right;">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-            <tr style="border-top: 1px solid #333;">
-              <td colspan="3" style="padding: 10px; text-align: right;"><strong>Total:</strong></td>
-              <td style="padding: 10px; text-align: right;"><strong>$${(total / 100).toFixed(2)}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <div style="margin-top: 30px;">
-          <h3 style="color: #fff; font-size: 16px; margin-bottom: 10px;">Shipping Address:</h3>
-          <p style="margin: 0;">${name}</p>
-          <p style="margin: 0;">${shipping.address}</p>
-          <p style="margin: 0;">${shipping.city}, ${shipping.state} ${shipping.zipCode}</p>
-          <p style="margin: 0;">${shipping.country}</p>
-        </div>
-        
-        <p style="margin-top: 30px; color: #999; font-size: 14px;">
-          If you have any questions about your order, please contact our support team at 
-          <a href="mailto:sleeve.support@gmail.com" style="color: #fff;">sleeve.support@gmail.com</a>
-        </p>
-        
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333; text-align: center; color: #999; font-size: 12px;">
-          © 2024 SLEEVE. All rights reserved.
-        </div>
-      </div>
+    subject: `Order Confirmation #${orderId}`,
+    text: `
+      Hi ${name},
+
+      Thank you for your order! Here are your order details:
+
+      Order #: ${orderId}
+      
+      Items:
+      ${itemsList}
+
+      Total: $${(total / 100).toFixed(2)}
+
+      We'll notify you when your order ships.
+
+      Best regards,
+      Sleeve Team
     `
   };
 
