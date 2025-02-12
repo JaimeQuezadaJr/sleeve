@@ -11,6 +11,18 @@ module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     const { amount, items, shipping } = req.body;
     
+    // Log the incoming items data
+    console.log('Incoming items from checkout:', items);
+    console.log('Item details:');
+    items.forEach(item => {
+      console.log({
+        id: item.id,
+        quantity: item.quantity,
+        title: item?.title,
+        price: item?.price
+      });
+    });
+
     try {
       // Test database connection first
       try {
@@ -101,16 +113,22 @@ module.exports = async function handler(req, res) {
               console.log('Database connection successful');
 
               console.log('About to execute product query...');
-              const { rows } = await client.execute(
-                'SELECT * FROM products WHERE id = ?',
-                [item.id]
-              );
-              console.log('Query executed, rows:', rows);
+              // Log the exact query we're trying to execute
+              const query = 'SELECT * FROM products WHERE id = ?';
+              const params = [item.id];
+              console.log('Query:', query, 'Params:', params);
 
-              // If we get here, the query was successful
+              const { rows } = await client.execute(query, params);
+              console.log('Raw database response:', rows);
+
               if (rows && rows.length > 0) {
                 const [product] = rows;
-                console.log('Product found:', product);
+                console.log('Found product in database:', {
+                  id: product.id,
+                  price: product.price,
+                  title: product.title,
+                  inventory: product.inventory_count
+                });
 
                 if (!product) {
                   throw new Error(`Product ${item.id} not found`);
