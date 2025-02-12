@@ -33,13 +33,11 @@ export default async function handler(req, res) {
         });
 
         const { rows } = await client.execute(
-          'SELECT inventory_count FROM products WHERE id = ?',
-          [item.id]
+          `SELECT inventory_count FROM products WHERE id = ${item.id}`
         );
         
         console.log('Query results:', {
-          sql: 'SELECT inventory_count FROM products WHERE id = ?',
-          params: [item.id],
+          sql: `SELECT inventory_count FROM products WHERE id = ${item.id}`,
           rowCount: rows.length,
           firstRow: rows[0]
         });
