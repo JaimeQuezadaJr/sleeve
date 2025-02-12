@@ -89,18 +89,18 @@ module.exports = async function handler(req, res) {
         for (const item of items) {
           console.log(`Processing item ${item.id}...`);
           
-          // Log the product query
-          const productQuery = `
-            SELECT id, price, title, inventory_count 
-            FROM products 
-            WHERE id = ${Number(item.id)}
-            LIMIT 1
-          `;
-          console.log('Executing product query:', productQuery);
-          
           try {
-            console.log('About to execute query...');
-            const { rows } = await client.execute(productQuery);
+            // First test if we can query anything
+            console.log('Testing database connection...');
+            await client.execute('SELECT 1');
+            console.log('Database connection successful');
+
+            // Try simple product query
+            console.log('About to execute product query...');
+            const { rows } = await client.execute(
+              'SELECT * FROM products WHERE id = ?',
+              [item.id]
+            );
             console.log('Query executed, rows:', rows);
 
             if (!rows || rows.length === 0) {
