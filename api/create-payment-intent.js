@@ -1,5 +1,6 @@
 import { createClient } from '@libsql/client';
 import Stripe from 'stripe';
+import { sendOrderConfirmation } from '../../server/services/emailService';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const client = createClient({
@@ -123,6 +124,25 @@ export default async function handler(req, res) {
           userId: shipping.userId || 'guest',
           shipping: shipping.email
         });
+
+        // Send order confirmation email
+        try {
+          await sendOrderConfirmation({
+            email: shipping.email,
+            name: shipping.name,
+            orderId: order.id,
+            items: items.map(item => ({
+              ...item,
+              price: product.price,
+              title: product.title
+            })),
+            total: amount
+          });
+          console.log('Order confirmation email sent');
+        } catch (emailError) {
+          console.error('Failed to send email:', emailError);
+          // Don't throw error since order was successful
+        }
       } catch (dbError) {
         console.error('Database error:', {
           message: dbError.message,

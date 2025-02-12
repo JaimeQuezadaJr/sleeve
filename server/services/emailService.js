@@ -9,19 +9,40 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-const sendOrderConfirmation = async (to, orderDetails) => {
-  try {
-    await transporter.sendMail({
-      from: `"SLEEVE" <${process.env.EMAIL_USER}>`,
-      to,
-      subject: 'SLEEVE - Order Confirmation',
-      html: orderDetails
-    });
-    console.log('Order confirmation email sent successfully');
-  } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    throw error;
-  }
-};
+async function sendOrderConfirmation(orderDetails) {
+  const { email, name, orderId, items, total } = orderDetails;
 
-module.exports = { sendOrderConfirmation }; 
+  const itemsList = items.map(item => 
+    `${item.quantity}x ${item.title} - $${(item.price * item.quantity / 100).toFixed(2)}`
+  ).join('\n');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: `Order Confirmation #${orderId}`,
+    text: `
+      Hi ${name},
+
+      Thank you for your order! Here are your order details:
+
+      Order #: ${orderId}
+      
+      Items:
+      ${itemsList}
+
+      Total: $${(total / 100).toFixed(2)}
+
+      We'll notify you when your order ships.
+
+      Best regards,
+      Sleeve Nine Team
+    `
+  };
+
+  return transporter.sendMail(mailOptions);
+}
+
+module.exports = {
+  transporter,
+  sendOrderConfirmation
+}; 
