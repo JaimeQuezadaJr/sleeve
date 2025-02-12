@@ -10,6 +10,7 @@ import {
 import { useCart } from '../../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
@@ -137,10 +138,11 @@ const PaymentForm = () => {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
+  const { cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const [error, setError] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { cartTotal, cartItems, clearCart } = useCart();
   const [shippingDetails, setShippingDetails] = useState({
     email: '',
     name: '',
@@ -198,7 +200,7 @@ const PaymentForm = () => {
           items: formattedItems,
           shipping: {
             ...shippingDetails,
-            userId: user.id || null
+            userId: user?.id || null
           }
         })
       });
