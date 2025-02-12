@@ -75,12 +75,19 @@ export default async function handler(req, res) {
           'SELECT last_insert_rowid() as id'
         );
 
+        console.log('Created order:', newOrder); // Debug order creation
+
         // Create order items
         for (const item of items) {
           // Get product price
           const { rows: [product] } = await client.execute(
             `SELECT price FROM products WHERE id = ${item.id}`
           );
+
+          if (!product) {
+            console.error('Product not found:', item.id);
+            continue;
+          }
 
           await client.execute(
             `INSERT INTO order_items 
@@ -92,6 +99,13 @@ export default async function handler(req, res) {
                 ${product.price}
               )`
           );
+
+          console.log('Created order item:', {
+            orderId: newOrder.id,
+            productId: item.id,
+            quantity: item.quantity,
+            price: product.price
+          });
 
           // Update inventory count
           await client.execute(
