@@ -59,12 +59,9 @@ export default async function handler(req, res) {
       try {
         // Create order
         const { rows: [order] } = await client.execute(
-          `INSERT INTO orders (
-            status,
-            total_amount,
-            shipping_address,
-            payment_intent_id
-          ) VALUES (?, ?, ?, ?) RETURNING id`,
+          `INSERT INTO orders 
+            (status, total_amount, shipping_address, payment_intent_id) 
+            VALUES (?, ?, ?, ?)`,
           [
             'completed',
             amount,
@@ -73,25 +70,37 @@ export default async function handler(req, res) {
           ]
         );
 
+        // Get the inserted order id
+        const { rows: [newOrder] } = await client.execute(
+          'SELECT last_insert_rowid() as id'
+        );
+
         // Create order items
         for (const item of items) {
+          // Get product price
+          const { rows: [product] } = await client.execute(
+            'SELECT price FROM products WHERE id = ?',
+            [item.id]
+          );
+
           await client.execute(
-            `INSERT INTO order_items (
-              order_id,
-              product_id,
-              quantity,
-              price_at_time
-            ) VALUES (?, ?, ?, ?)`,
+            `INSERT INTO order_items 
+              (order_id, product_id, quantity, price_at_time) 
+              VALUES (?, ?, ?, ?)`,
             [
-              order.id,
+              newOrder.id,
               item.id,
               item.quantity,
-              item.price || 0  // Get actual price from products table
+              product.price
             ]
           );
         }
 
-        console.log('Order created:', { orderId: order.id });
+        console.log('Order created:', { 
+          orderId: newOrder.id,
+          amount,
+          items: items.length
+        });
       } catch (dbError) {
         console.error('Database error:', dbError);
         // Still return success since payment worked
