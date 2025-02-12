@@ -172,9 +172,14 @@ const PaymentForm = () => {
     try {
       // Transform cart items to the correct structure
       const formattedItems = cartItems.map(item => ({
-        id: item.directId || item.id,  // Use directId if available
+        id: parseInt(item.directId || item.id),  // Ensure it's a number
         quantity: item.quantity
       }));
+
+      // Validate items before sending
+      if (!formattedItems.every(item => Number.isInteger(item.id))) {
+        throw new Error('Invalid product ID');
+      }
 
       console.log('Formatted items:', formattedItems);
 
