@@ -101,97 +101,75 @@ module.exports = async function handler(req, res) {
         for (const item of items) {
           console.log(`Processing item ${item.id}...`);
           
-          // Add retry mechanism for database operations
-          const maxRetries = 3;
-          let retryCount = 0;
-          let lastError = null;
+          try {
+            console.log('Testing database connection...');
+            await client.execute('SELECT 1');
+            console.log('Database connection successful');
 
-          while (retryCount < maxRetries) {
-            try {
-              console.log('Testing database connection...');
-              await client.execute('SELECT 1');
-              console.log('Database connection successful');
+            console.log('About to execute product query...');
+            const { rows } = await client.execute(
+              'SELECT * FROM products WHERE id = ?',
+              [item.id]
+            );
+            console.log('Query executed, rows:', rows);
 
-              console.log('About to execute product query...');
-              // Log the exact query we're trying to execute
-              const query = 'SELECT * FROM products WHERE id = ?';
-              const params = [item.id];
-              console.log('Query:', query, 'Params:', params);
+            const [product] = rows;
+            console.log('Found product in database:', {
+              id: product.id,
+              price: product.price,
+              title: product.title,
+              inventory: product.inventory_count
+            });
 
-              const { rows } = await client.execute(query, params);
-              console.log('Raw database response:', rows);
-
-              if (rows && rows.length > 0) {
-                const [product] = rows;
-                console.log('Found product in database:', {
-                  id: product.id,
-                  price: product.price,
-                  title: product.title,
-                  inventory: product.inventory_count
-                });
-
-                if (!product) {
-                  throw new Error(`Product ${item.id} not found`);
-                }
-                if (typeof product.price === 'undefined') {
-                  throw new Error(`Product ${item.id} has no price`);
-                }
-
-                console.log('Processing item with full details:', {
-                  item,
-                  orderId: order.id,
-                  product
-                });
-
-                console.log('Product found, preparing order item...');
-                orderItems.push({
-                  quantity: item.quantity,
-                  price: product.price,
-                  title: product.title
-                });
-
-                console.log('Inserting order item with values:', {
-                  orderId: order.id,
-                  productId: item.id,
-                  quantity: item.quantity,
-                  price: product.price
-                });
-
-                const insertQuery = `
-                  INSERT INTO order_items 
-                    (order_id, product_id, quantity, price_at_time) 
-                    VALUES (
-                      ${Number(order.id)},
-                      ${Number(item.id)},
-                      ${Number(item.quantity)},
-                      ${Number(product.price)}
-                    )
-                `;
-                
-                console.log('Executing order item insert query:', insertQuery);
-                await client.execute(insertQuery);
-
-                await client.execute(`
-                  UPDATE products 
-                  SET inventory_count = inventory_count - ${Number(item.quantity)}
-                  WHERE id = ${Number(item.id)}
-                `);
-
-                break; // Exit retry loop on success
-              }
-            } catch (error) {
-              lastError = error;
-              retryCount++;
-              console.log(`Retry attempt ${retryCount} of ${maxRetries}`);
-              // Wait a bit before retrying
-              await new Promise(resolve => setTimeout(resolve, 1000));
+            if (!product) {
+              throw new Error(`Product ${item.id} not found`);
             }
-          }
+            if (typeof product.price === 'undefined') {
+              throw new Error(`Product ${item.id} has no price`);
+            }
 
-          // If we exhausted all retries, throw the last error
-          if (retryCount === maxRetries) {
-            console.error('All retry attempts failed:', lastError);
-            throw lastError;
+            console.log('Processing item with full details:', {
+              item,
+              orderId: order.id,
+              product
+            });
+
+            console.log('Product found, preparing order item...');
+            orderItems.push({
+              quantity: item.quantity,
+              price: product.price,
+              title: product.title
+            });
+
+            console.log('Inserting order item with values:', {
+              orderId: order.id,
+              productId: item.id,
+              quantity: item.quantity,
+              price: product.price
+            });
+
+            const insertQuery = `
+              INSERT INTO order_items 
+                (order_id, product_id, quantity, price_at_time) 
+                VALUES (
+                  ${Number(order.id)},
+                  ${Number(item.id)},
+                  ${Number(item.quantity)},
+                  ${Number(product.price)}
+                )
+            `;
+            
+            console.log('Executing order item insert query:', insertQuery);
+            await client.execute(insertQuery);
+
+            await client.execute(`
+              UPDATE products 
+              SET inventory_count = inventory_count - ${Number(item.quantity)}
+              WHERE id = ${Number(item.id)}
+            `);
+          } catch (error) {
+            console.error('Product error:', error);
+            throw error;
           }
         }
       } catch (dbError) {
