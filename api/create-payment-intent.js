@@ -120,10 +120,21 @@ module.exports = async function handler(req, res) {
             const productQuery = `SELECT * FROM products WHERE id = ${productId}`;
             console.log('Product query:', productQuery);
             
-            const { rows } = await client.execute(productQuery);
-            console.log('Query executed, rows:', rows);
+            let rows;
+            try {
+              const result = await client.execute(productQuery);
+              rows = result.rows;
+              console.log('Query executed successfully');
+              console.log('Number of rows returned:', rows?.length);
+              console.log('Query result:', result);
+            } catch (queryError) {
+              console.error('Database query failed:', queryError);
+              console.error('Query that failed:', productQuery);
+              throw new Error(`Failed to fetch product: ${queryError.message}`);
+            }
 
             if (!rows || rows.length === 0) {
+              console.error('No rows returned for product ID:', productId);
               throw new Error(`No product found with ID ${productId}`);
             }
 
