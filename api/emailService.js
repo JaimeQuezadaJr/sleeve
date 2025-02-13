@@ -21,13 +21,13 @@ async function sendOrderConfirmation(orderDetails) {
 
     Order Details:
     ----------------------------------------
-    Product                  Quantity    Price      Subtotal
+    Product                Quantity  Price    Subtotal
     ----------------------------------------
     ${items.map(item => 
-      `${item.title.padEnd(25)} ${String(item.quantity).padStart(3)}     $${parseFloat(item.price.replace('$', '')).toFixed(2).padStart(8)}   $${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2).padStart(8)}`
+      `${item.title.padEnd(20)} ${String(item.quantity).padStart(8)} $ ${parseFloat(item.price.replace('$', '')).toFixed(2).padStart(6)} $ ${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2).padStart(6)}`
     ).join('\n')}
     ----------------------------------------
-    ${' '.repeat(37)}Total: $${total.toFixed(2).padStart(8)}
+    ${' '.repeat(35)}Total: $ ${total.toFixed(2).padStart(6)}
 
     We'll notify you when your order ships.
     
