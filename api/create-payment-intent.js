@@ -119,11 +119,6 @@ module.exports = async function handler(req, res) {
             }
 
             console.log('Product found, preparing order item...');
-            orderItems.push({
-              quantity: item.quantity,
-              price: product.price,
-              title: product.title
-            });
 
             console.log('Inserting order item with values:', {
               orderId: order.id,
@@ -132,24 +127,24 @@ module.exports = async function handler(req, res) {
               price: product.price
             });
 
-            const insertQuery = `
-              INSERT INTO order_items 
-                (order_id, product_id, quantity, price_at_time) 
-                VALUES (
-                  ${Number(order.id)},
-                  ${Number(item.id)},
-                  ${Number(item.quantity)},
-                  ${Number(product.price)}
-                )
-            `;
-            
-            await client.execute(insertQuery);
+            try {
+              await client.execute(
+                `INSERT INTO order_items (order_id, product_id, quantity, price_at_time) 
+                 VALUES (?, ?, ?, ?)`,
+                [order.id, item.id, item.quantity, product.price]
+              );
+              console.log('Order item inserted successfully');
+            } catch (insertError) {
+              console.error('Failed to insert order item:', insertError);
+              throw insertError;
+            }
 
             await client.execute(`
               UPDATE products 
               SET inventory_count = inventory_count - ${Number(item.quantity)}
               WHERE id = ${Number(item.id)}
             `);
+            console.log('Product inventory updated');
           } catch (error) {
             console.error('Product error:', error);
             throw error;
