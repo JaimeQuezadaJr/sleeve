@@ -254,7 +254,7 @@ const PaymentForm = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            amount: cartTotal,
+            amount: cartTotal * 100, // Convert to cents for Stripe
             items: cartItems.map(item => ({
               id: item.id,
               quantity: item.quantity,
@@ -267,6 +267,7 @@ const PaymentForm = () => {
       );
 
       const data = await response.json();
+      console.log('Payment intent response:', data);
 
       if (data.error) {
         setError(data.error.message);
@@ -283,7 +284,8 @@ const PaymentForm = () => {
 
         if (stripeError) {
           setError(stripeError.message);
-        } else if (data.paymentIntent.status === 'succeeded') {
+        } else {
+          // Payment successful
           clearCart();
           setSuccess(true);
           setTimeout(() => {
@@ -292,6 +294,7 @@ const PaymentForm = () => {
         }
       }
     } catch (err) {
+      console.error('Payment error:', err);
       setError('An error occurred while processing your payment.');
     }
 
