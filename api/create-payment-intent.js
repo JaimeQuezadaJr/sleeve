@@ -117,34 +117,25 @@ module.exports = async function handler(req, res) {
             const productId = Number(item.id);
             console.log('Looking for product with ID:', productId);
 
+            // Check if we need a new connection
+            try {
+              await client.execute('SELECT 1');
+            } catch (connError) {
+              console.log('Reconnecting to database...');
+              client = createClient({
+                url: process.env.TURSO_DATABASE_URL,
+                authToken: process.env.TURSO_AUTH_TOKEN
+              });
+            }
+
             const productQuery = `SELECT * FROM products WHERE id = ${productId}`;
             console.log('Product query:', productQuery);
             
-            let rows;
             try {
-              // Wrap database query in a Promise with timeout
-              const queryPromise = new Promise(async (resolve, reject) => {
-                try {
-                  console.log('Starting database query execution...');
-                  const result = await client.execute(productQuery);
-                  console.log('Database query completed');
-                  resolve(result);
-                } catch (error) {
-                  console.log('Database query error:', error);
-                  reject(error);
-                }
-              });
-
-              // Add timeout
-              const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
-                  reject(new Error('Database query timed out after 5 seconds'));
-                }, 5000);
-              });
-
-              // Race between query and timeout
-              const result = await Promise.race([queryPromise, timeoutPromise]);
-              rows = result.rows;
+              console.log('Executing product query...');
+              const result = await client.execute(productQuery);
+              console.log('Query result received');
+              const rows = result.rows;
               console.log('Query executed successfully');
               console.log('Number of rows returned:', rows?.length);
               console.log('Query result:', result);
