@@ -113,31 +113,23 @@ module.exports = async function handler(req, res) {
           console.log(`Processing item ${item.id}...`);
           
           try {
-            console.log('About to execute product query...');
             const productId = Number(item.id);
             console.log('Looking for product with ID:', productId);
 
-            // Create a new client for each query
-            const newClient = createClient({
-              url: process.env.TURSO_DATABASE_URL,
-              authToken: process.env.TURSO_AUTH_TOKEN
-            });
-
             console.log('Checking if product exists...');
-            const checkQuery = `SELECT COUNT(*) as count FROM products WHERE id = ${productId}`;
             try {
-              const { rows: [count] } = await newClient.execute(checkQuery);
-              console.log('Product count:', count);
+              console.log('Fetching product details...');
+              const { rows } = await client.execute(
+                `SELECT id, price, title, inventory_count FROM products WHERE id = ${productId}`
+              );
+              console.log('Query completed');
 
-              if (count.count === 0) {
+              if (!rows || rows.length === 0) {
                 throw new Error(`No product found with ID ${productId}`);
               }
 
-              console.log('Product exists, fetching details...');
-              const { rows: [product] } = await newClient.execute(
-                `SELECT id, price, title, inventory_count FROM products WHERE id = ${productId}`
-              );
-              console.log('Product details:', product);
+              const product = rows[0];
+              console.log('Product found:', product);
 
               if (!product) {
                 throw new Error(`Product ${item.id} not found`);
