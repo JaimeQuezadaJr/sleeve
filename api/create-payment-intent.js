@@ -94,43 +94,41 @@ module.exports = async function handler(req, res) {
             ) RETURNING id
         `;
         
-        // Execute order creation and wait for result
         const { rows: [order] } = await client.execute(orderQuery);
-        
-        if (!order || !order.id) {
-          throw new Error('Failed to create order - no ID returned');
-        }
-        
         console.log('Order created with ID:', order.id);
 
         // Process all items in sequence
         for (const item of items) {
           console.log(`Processing item ${item.id} for order ${order.id}...`);
           
-          // Get product details
+          // Get product details using direct SQL
           const { rows: [product] } = await client.execute(
-            'SELECT * FROM products WHERE id = ?',
-            [item.id]
+            `SELECT * FROM products WHERE id = ${Number(item.id)}`
           );
 
           if (!product) {
             throw new Error(`Product ${item.id} not found`);
           }
 
-          // Insert order item
-          await client.execute(
-            `INSERT INTO order_items (order_id, product_id, quantity, price_at_time)
-             VALUES (?, ?, ?, ?)`,
-            [order.id, item.id, item.quantity, product.price]
-          );
+          // Insert order item using direct SQL
+          const insertOrderItemQuery = `
+            INSERT INTO order_items 
+              (order_id, product_id, quantity, price_at_time)
+              VALUES (
+                ${Number(order.id)},
+                ${Number(item.id)},
+                ${Number(item.quantity)},
+                ${Number(product.price)}
+              )
+          `;
+          await client.execute(insertOrderItemQuery);
 
-          // Update inventory
-          await client.execute(
-            `UPDATE products 
-             SET inventory_count = inventory_count - ? 
-             WHERE id = ?`,
-            [item.quantity, item.id]
-          );
+          // Update inventory using direct SQL
+          await client.execute(`
+            UPDATE products 
+            SET inventory_count = inventory_count - ${Number(item.quantity)}
+            WHERE id = ${Number(item.id)}
+          `);
           
           console.log(`Completed processing item ${item.id}`);
         }
