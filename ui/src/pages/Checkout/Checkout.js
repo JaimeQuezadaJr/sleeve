@@ -286,6 +286,26 @@ const PaymentForm = () => {
           setError(stripeError.message);
         } else {
           // Payment successful
+          try {
+            // Send order confirmation email
+            await fetch(`${process.env.REACT_APP_API_URL}/send-confirmation`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: shippingDetails.email,
+                name: shippingDetails.name,
+                orderId: data.orderId,
+                items: cartItems,
+                total: cartTotal
+              }),
+            });
+          } catch (emailError) {
+            console.error('Failed to trigger confirmation email:', emailError);
+            // Don't block the checkout process if email fails
+          }
+
           clearCart();
           setSuccess(true);
           setTimeout(() => {
