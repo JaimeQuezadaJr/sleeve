@@ -267,7 +267,7 @@ const PaymentForm = () => {
       );
 
       const data = await response.json();
-      console.log('Payment intent response:', data);
+
 
       if (data.error) {
         setError(data.error.message);
