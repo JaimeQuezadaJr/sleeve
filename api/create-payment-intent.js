@@ -69,9 +69,6 @@ module.exports = async function handler(req, res) {
       try {
         console.log('Beginning order creation process...');
         
-        // Start transaction
-        await client.execute('BEGIN TRANSACTION');
-        
         // Create order
         console.log('Creating order with data:', {
           amount,
@@ -126,10 +123,6 @@ module.exports = async function handler(req, res) {
           console.log(`Completed processing item ${item.id}`);
         }
 
-        // If we get here, everything succeeded - commit the transaction
-        await client.execute('COMMIT');
-        console.log('Transaction committed successfully');
-
         // Send response only after all database operations are complete
         res.json({ 
           clientSecret: paymentIntent.client_secret,
@@ -137,9 +130,7 @@ module.exports = async function handler(req, res) {
         });
 
       } catch (error) {
-        // If anything fails, roll back the entire transaction
         console.error('Error during order processing:', error);
-        await client.execute('ROLLBACK');
         if (!res.headersSent) {
           res.status(500).json({ error: error.message });
         }
