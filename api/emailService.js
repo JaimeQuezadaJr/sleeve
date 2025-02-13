@@ -25,15 +25,15 @@ async function sendOrderConfirmation(orderDetails) {
         <tr style="border-bottom: 1px solid #e0e0e0; text-align: left;">
           <th style="padding: 10px 0; color: #000000;">Product</th>
           <th style="padding: 10px 0; color: #000000; text-align: center;">Quantity</th>
-          <th style="padding: 10px 0; color: #000000; text-align: right;">Price</th>
-          <th style="padding: 10px 0; color: #000000; text-align: right;">Subtotal</th>
+          <th style="padding: 10px 20px 10px 0; color: #000000; text-align: right;">Price</th>
+          <th style="padding: 10px 0 10px 20px; color: #000000; text-align: right;">Subtotal</th>
         </tr>
         ${items.map(item => `
           <tr style="border-bottom: 1px solid #e0e0e0;">
             <td style="padding: 10px 0; color: #000000;">${item.title}</td>
             <td style="padding: 10px 0; text-align: center; color: #000000;">${item.quantity}</td>
-            <td style="padding: 10px 0; text-align: right; color: #000000;">$${parseFloat(item.price.replace('$', '')).toFixed(2)}</td>
-            <td style="padding: 10px 0; text-align: right; color: #000000;">$${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}</td>
+            <td style="padding: 10px 20px 10px 0; text-align: right; color: #000000;">$${parseFloat(item.price.replace('$', '')).toFixed(2)}</td>
+            <td style="padding: 10px 0 10px 20px; text-align: right; color: #000000;">$${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}</td>
           </tr>
         `).join('')}
         <tr>
