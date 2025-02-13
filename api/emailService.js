@@ -59,6 +59,7 @@ async function sendOrderConfirmation(orderDetails) {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
+      bcc: process.env.EMAIL_USER,
       subject: `SLEEVE - Order Confirmation #${orderId}`,
       html: htmlContent
     });
