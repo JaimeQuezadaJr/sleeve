@@ -96,8 +96,7 @@ module.exports = async function handler(req, res) {
           return;
         }
 
-        // Process order items
-        const orderItems = [];
+        console.log('Starting to process order items...');
         for (const item of items) {
           console.log(`Processing item ${item.id}...`);
           
@@ -146,10 +145,12 @@ module.exports = async function handler(req, res) {
             `);
             console.log('Product inventory updated');
           } catch (error) {
-            console.error('Product error:', error);
-            throw error;
+            console.error('Error processing item:', error);
+            // Continue with other items even if one fails
+            continue;
           }
         }
+        console.log('Finished processing all order items');
       } catch (dbError) {
         console.error('Database error:', dbError);
       }
