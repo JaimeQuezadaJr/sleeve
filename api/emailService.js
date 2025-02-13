@@ -12,24 +12,28 @@ async function sendOrderConfirmation(orderDetails) {
   const { email, name, orderId, items, total } = orderDetails;
 
   const emailContent = `
-    Order Confirmation
+    SLEEVE - Order Confirmation
+    ----------------------------------------
 
     Thank you for your order, ${name}!
 
     Order ID: ${orderId}
 
     Order Details:
+    ----------------------------------------
+    Product                  Quantity    Price      Subtotal
+    ----------------------------------------
     ${items.map(item => 
-      `${item.title}
-       Quantity: ${item.quantity}
-       Price: $${parseFloat(item.price.replace('$', '')).toFixed(2)}
-       Subtotal: $${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2)}`
-    ).join('\n\n')}
+      `${item.title.padEnd(25)} ${String(item.quantity).padStart(3)}     $${parseFloat(item.price.replace('$', '')).toFixed(2).padStart(8)}   $${(parseFloat(item.price.replace('$', '')) * item.quantity).toFixed(2).padStart(8)}`
+    ).join('\n')}
+    ----------------------------------------
+    ${' '.repeat(37)}Total: $${total.toFixed(2).padStart(8)}
 
-    Total: $${total.toFixed(2)}
+    We'll notify you when your order ships.
+    
+    If you have any questions about your order, please contact our support team at sleeve.support@gmail.com
 
-    Questions? Contact us at sleeve.support@gmail.com
-
+    ----------------------------------------
     © 2024 SLEEVE. All rights reserved.
   `;
 
