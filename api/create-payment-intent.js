@@ -117,76 +117,67 @@ module.exports = async function handler(req, res) {
             const productId = Number(item.id);
             console.log('Looking for product with ID:', productId);
 
-            // Check if we need a new connection
-            try {
-              await client.execute('SELECT 1');
-            } catch (connError) {
-              console.log('Reconnecting to database...');
-              client = createClient({
-                url: process.env.TURSO_DATABASE_URL,
-                authToken: process.env.TURSO_AUTH_TOKEN
-              });
-            }
-
-            const productQuery = `SELECT * FROM products WHERE id = ${productId}`;
-            console.log('Product query:', productQuery);
-            
-            try {
-              console.log('Executing product query...');
-              const result = await client.execute(productQuery);
-              console.log('Query result received');
-              const rows = result.rows;
-              console.log('Query executed successfully');
-              console.log('Number of rows returned:', rows?.length);
-              console.log('Query result:', result);
-            } catch (queryError) {
-              console.error('Database query failed:', queryError);
-              console.error('Query that failed:', productQuery);
-              throw new Error(`Failed to fetch product: ${queryError.message}`);
-            }
-
-            if (!rows || rows.length === 0) {
-              console.error('No rows returned for product ID:', productId);
-              throw new Error(`No product found with ID ${productId}`);
-            }
-
-            const [product] = rows;
-            console.log('Raw product data:', product);
-
-            if (!product) {
-              throw new Error(`Product ${item.id} not found`);
-            }
-            if (typeof product.price === 'undefined') {
-              throw new Error(`Product ${item.id} has no price`);
-            }
-
-            console.log('Product found, preparing order item...');
-
-            console.log('Inserting order item with values:', {
-              orderId: order.id,
-              productId: item.id,
-              quantity: item.quantity,
-              price: product.price
+            // Create a new client for each query
+            const newClient = createClient({
+              url: process.env.TURSO_DATABASE_URL,
+              authToken: process.env.TURSO_AUTH_TOKEN
             });
 
+            console.log('Checking if product exists...');
+            const checkQuery = `SELECT COUNT(*) as count FROM products WHERE id = ${productId}`;
             try {
-              await client.execute(
-                `INSERT INTO order_items (order_id, product_id, quantity, price_at_time) 
-                 VALUES (?, ?, ?, ?)`,
-                [order.id, item.id, item.quantity, product.price]
-              );
-              console.log('Order item inserted successfully');
-            } catch (insertError) {
-              console.error('Failed to insert order item:', insertError);
-              throw insertError;
-            }
+              const { rows: [count] } = await newClient.execute(checkQuery);
+              console.log('Product count:', count);
 
-            await client.execute(`
-              UPDATE products 
-              SET inventory_count = inventory_count - ${Number(item.quantity)}
-              WHERE id = ${Number(item.id)}
-            `);
-            console.log('Product inventory updated');
+              if (count.count === 0) {
+                throw new Error(`No product found with ID ${productId}`);
+              }
+
+              console.log('Product exists, fetching details...');
+              const { rows: [product] } = await newClient.execute(
+                `SELECT id, price, title, inventory_count FROM products WHERE id = ${productId}`
+              );
+              console.log('Product details:', product);
+
+              if (!product) {
+                throw new Error(`Product ${item.id} not found`);
+              }
+              if (typeof product.price === 'undefined') {
+                throw new Error(`Product ${item.id} has no price`);
+              }
+
+              console.log('Product found, preparing order item...');
+
+              console.log('Inserting order item with values:', {
+                orderId: order.id,
+                productId: item.id,
+                quantity: item.quantity,
+                price: product.price
+              });
+
+              try {
+                await client.execute(
+                  `INSERT INTO order_items (order_id, product_id, quantity, price_at_time) 
+                   VALUES (?, ?, ?, ?)`,
+                  [order.id, item.id, item.quantity, product.price]
+                );
+                console.log('Order item inserted successfully');
+              } catch (insertError) {
+                console.error('Failed to insert order item:', insertError);
+                throw insertError;
+              }
+
+              await client.execute(`
+                UPDATE products 
+                SET inventory_count = inventory_count - ${Number(item.quantity)}
+                WHERE id = ${Number(item.id)}
+              `);
+              console.log('Product inventory updated');
+            } catch (error) {
+              console.error('Error processing item:', error);
+              // Continue with other items even if one fails
+              continue;
+            }
           } catch (error) {
             console.error('Error processing item:', error);
             // Continue with other items even if one fails
