@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
       try {
         console.log('Beginning order creation process...');
         
-        // Use a transaction to ensure all operations complete together
+        // Start transaction
         await client.execute('BEGIN TRANSACTION');
         
         // Create order
@@ -94,88 +94,56 @@ module.exports = async function handler(req, res) {
             ) RETURNING id
         `;
         
+        // Execute order creation and wait for result
         const { rows: [order] } = await client.execute(orderQuery);
+        
+        if (!order || !order.id) {
+          throw new Error('Failed to create order - no ID returned');
+        }
+        
         console.log('Order created with ID:', order.id);
 
-        // Process all items and collect any errors
-        const errors = [];
+        // Process all items in sequence
         for (const item of items) {
-          try {
-            const productId = Number(item.id);
-            console.log('Looking for product with ID:', productId);
+          console.log(`Processing item ${item.id} for order ${order.id}...`);
+          
+          // Get product details
+          const { rows: [product] } = await client.execute(
+            'SELECT * FROM products WHERE id = ?',
+            [item.id]
+          );
 
-            console.log('Checking if product exists...');
-            try {
-              console.log('Fetching product details...');
-              const { rows } = await client.execute(
-                `SELECT id, price, title, inventory_count FROM products WHERE id = ${productId}`
-              );
-              console.log('Query completed');
-
-              if (!rows || rows.length === 0) {
-                throw new Error(`No product found with ID ${productId}`);
-              }
-
-              const product = rows[0];
-              console.log('Product found:', product);
-
-              if (!product) {
-                throw new Error(`Product ${item.id} not found`);
-              }
-              if (typeof product.price === 'undefined') {
-                throw new Error(`Product ${item.id} has no price`);
-              }
-
-              console.log('Product found, preparing order item...');
-
-              console.log('Inserting order item with values:', {
-                orderId: order.id,
-                productId: item.id,
-                quantity: item.quantity,
-                price: product.price
-              });
-
-              const insertOrderItemQuery = `
-                INSERT INTO order_items 
-                  (order_id, product_id, quantity, price_at_time) 
-                  VALUES (
-                    ${Number(order.id)},
-                    ${Number(item.id)},
-                    ${Number(item.quantity)},
-                    ${Number(product.price)}
-                  )
-              `;
-              
-              await client.execute(insertOrderItemQuery);
-              
-              await client.execute(`
-                UPDATE products 
-                SET inventory_count = inventory_count - ${Number(item.quantity)}
-                WHERE id = ${Number(item.id)}
-              `);
-            } catch (error) {
-              errors.push(error);
-              break;
-            }
-          } catch (error) {
-            errors.push(error);
-            continue;
+          if (!product) {
+            throw new Error(`Product ${item.id} not found`);
           }
+
+          // Insert order item
+          await client.execute(
+            `INSERT INTO order_items (order_id, product_id, quantity, price_at_time)
+             VALUES (?, ?, ?, ?)`,
+            [order.id, item.id, item.quantity, product.price]
+          );
+
+          // Update inventory
+          await client.execute(
+            `UPDATE products 
+             SET inventory_count = inventory_count - ? 
+             WHERE id = ?`,
+            [item.quantity, item.id]
+          );
+          
+          console.log(`Completed processing item ${item.id}`);
         }
 
-        if (errors.length > 0) {
-          console.error('Errors during order processing:', errors);
-          await client.execute('ROLLBACK');
-          throw errors[0];
-        }
-
-        // Commit the transaction
+        // If we get here, everything succeeded - commit the transaction
         await client.execute('COMMIT');
-        console.log('Order and items processed successfully');
+        console.log('Transaction committed successfully');
 
-      } catch (dbError) {
-        console.error('Database error:', dbError);
+      } catch (error) {
+        // If anything fails, roll back the entire transaction
+        console.error('Error during order processing:', error);
         await client.execute('ROLLBACK');
+        throw error;
       }
     } catch (err) {
       console.error('Payment intent error:', err);
