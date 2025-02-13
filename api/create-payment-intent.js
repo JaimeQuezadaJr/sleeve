@@ -114,13 +114,21 @@ module.exports = async function handler(req, res) {
           
           try {
             console.log('About to execute product query...');
-            const { rows } = await client.execute(
-              'SELECT * FROM products WHERE id = ?',
-              [item.id]
-            );
+            const productId = Number(item.id);
+            console.log('Looking for product with ID:', productId);
+
+            const productQuery = `SELECT * FROM products WHERE id = ${productId}`;
+            console.log('Product query:', productQuery);
+            
+            const { rows } = await client.execute(productQuery);
             console.log('Query executed, rows:', rows);
 
+            if (!rows || rows.length === 0) {
+              throw new Error(`No product found with ID ${productId}`);
+            }
+
             const [product] = rows;
+            console.log('Raw product data:', product);
 
             if (!product) {
               throw new Error(`Product ${item.id} not found`);
