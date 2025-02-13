@@ -65,9 +65,6 @@ module.exports = async function handler(req, res) {
         }
       });
 
-      // Send the client secret immediately
-      res.json({ clientSecret: paymentIntent.client_secret });
-
       // Handle order creation and email after responding
       try {
         console.log('Beginning order creation process...');
@@ -101,7 +98,6 @@ module.exports = async function handler(req, res) {
         for (const item of items) {
           console.log(`Processing item ${item.id} for order ${order.id}...`);
           
-          // Get product details using direct SQL
           const { rows: [product] } = await client.execute(
             `SELECT * FROM products WHERE id = ${Number(item.id)}`
           );
@@ -110,8 +106,7 @@ module.exports = async function handler(req, res) {
             throw new Error(`Product ${item.id} not found`);
           }
 
-          // Insert order item using direct SQL
-          const insertOrderItemQuery = `
+          await client.execute(`
             INSERT INTO order_items 
               (order_id, product_id, quantity, price_at_time)
               VALUES (
@@ -120,10 +115,8 @@ module.exports = async function handler(req, res) {
                 ${Number(item.quantity)},
                 ${Number(product.price)}
               )
-          `;
-          await client.execute(insertOrderItemQuery);
+          `);
 
-          // Update inventory using direct SQL
           await client.execute(`
             UPDATE products 
             SET inventory_count = inventory_count - ${Number(item.quantity)}
@@ -137,11 +130,19 @@ module.exports = async function handler(req, res) {
         await client.execute('COMMIT');
         console.log('Transaction committed successfully');
 
+        // Send response only after all database operations are complete
+        res.json({ 
+          clientSecret: paymentIntent.client_secret,
+          orderId: order.id
+        });
+
       } catch (error) {
         // If anything fails, roll back the entire transaction
         console.error('Error during order processing:', error);
         await client.execute('ROLLBACK');
-        throw error;
+        if (!res.headersSent) {
+          res.status(500).json({ error: error.message });
+        }
       }
     } catch (err) {
       console.error('Payment intent error:', err);
