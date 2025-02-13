@@ -70,6 +70,7 @@ module.exports = async function handler(req, res) {
 
       // Handle order creation and email after responding
       try {
+        console.log('Beginning order creation process...');
         // Create order
         console.log('Creating order with data:', {
           amount,
@@ -77,8 +78,8 @@ module.exports = async function handler(req, res) {
           paymentIntentId: paymentIntent.id
         });
 
-        const { rows: [order] } = await client.execute(
-          `INSERT INTO orders 
+        const orderQuery = `
+          INSERT INTO orders 
             (status, total_amount, shipping_address, payment_intent_id, user_id) 
             VALUES (
               'completed', 
@@ -86,10 +87,21 @@ module.exports = async function handler(req, res) {
               '${JSON.stringify(shipping)}', 
               '${paymentIntent.id}',
               ${shipping.userId || 'NULL'}
-            ) RETURNING id`
+            ) RETURNING id
+        `;
+        console.log('Executing order query:', orderQuery);
+
+        const { rows: [order] } = await client.execute(
+          orderQuery
         );
 
+        if (!order) {
+          console.error('Order query returned no rows');
+          throw new Error('Failed to create order - no rows returned');
+        }
+
         console.log('Order created:', order);
+        console.log('Order ID:', order.id);
 
         if (!order || !order.id) {
           console.error('Failed to create order');
