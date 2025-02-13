@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export async function sendOrderConfirmation(orderDetails) {
+async function sendOrderConfirmation(orderDetails) {
   const { email, name, orderId, items, total } = orderDetails;
 
   // Format items for email
@@ -51,7 +51,7 @@ export async function sendOrderConfirmation(orderDetails) {
   }
 }
 
-export {
+module.exports = {
   transporter,
   sendOrderConfirmation
 }; 

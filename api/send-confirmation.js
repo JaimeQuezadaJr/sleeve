@@ -1,6 +1,6 @@
-import { sendOrderConfirmation } from './emailService';
+const { sendOrderConfirmation } = require('./emailService');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method === 'POST') {
     try {
       const orderDetails = req.body;
