@@ -122,7 +122,28 @@ module.exports = async function handler(req, res) {
             
             let rows;
             try {
-              const result = await client.execute(productQuery);
+              // Wrap database query in a Promise with timeout
+              const queryPromise = new Promise(async (resolve, reject) => {
+                try {
+                  console.log('Starting database query execution...');
+                  const result = await client.execute(productQuery);
+                  console.log('Database query completed');
+                  resolve(result);
+                } catch (error) {
+                  console.log('Database query error:', error);
+                  reject(error);
+                }
+              });
+
+              // Add timeout
+              const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                  reject(new Error('Database query timed out after 5 seconds'));
+                }, 5000);
+              });
+
+              // Race between query and timeout
+              const result = await Promise.race([queryPromise, timeoutPromise]);
               rows = result.rows;
               console.log('Query executed successfully');
               console.log('Number of rows returned:', rows?.length);
