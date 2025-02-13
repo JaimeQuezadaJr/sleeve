@@ -148,23 +148,36 @@ module.exports = async function handler(req, res) {
               });
 
               try {
-                await client.execute(
-                  `INSERT INTO order_items (order_id, product_id, quantity, price_at_time) 
-                   VALUES (?, ?, ?, ?)`,
-                  [order.id, item.id, item.quantity, product.price]
-                );
+                const insertOrderItemQuery = `
+                  INSERT INTO order_items 
+                    (order_id, product_id, quantity, price_at_time) 
+                    VALUES (
+                      ${Number(order.id)},
+                      ${Number(item.id)},
+                      ${Number(item.quantity)},
+                      ${Number(product.price)}
+                    )
+                `;
+                console.log('Executing insert query:', insertOrderItemQuery);
+                await client.execute(insertOrderItemQuery);
                 console.log('Order item inserted successfully');
+
+                console.log('Updating product inventory...');
+                await client.execute(`
+                  UPDATE products 
+                  SET inventory_count = inventory_count - ${Number(item.quantity)}
+                  WHERE id = ${Number(item.id)}
+                `);
+                console.log('Product inventory updated');
               } catch (insertError) {
-                console.error('Failed to insert order item:', insertError);
+                console.error('Database operation failed:', {
+                  error: insertError,
+                  orderId: order.id,
+                  productId: item.id,
+                  step: 'insert_order_item'
+                });
                 throw insertError;
               }
-
-              await client.execute(`
-                UPDATE products 
-                SET inventory_count = inventory_count - ${Number(item.quantity)}
-                WHERE id = ${Number(item.id)}
-              `);
-              console.log('Product inventory updated');
             } catch (error) {
               console.error('Error processing item:', error);
               // Continue with other items even if one fails
