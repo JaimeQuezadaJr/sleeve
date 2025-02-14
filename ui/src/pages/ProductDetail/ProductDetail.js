@@ -148,16 +148,20 @@ const ContentWrapper = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
-  padding: 40px 20px 30px;
+  padding: 35px 20px;
   overflow: hidden;
   position: relative;
+  
+  @media (max-width: 390px) {
+    padding: 25px 20px;
+  }
 `;
 
 const ScrollContainer = styled.div`
   padding: 0 20px;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
   width: 100%;
   max-height: 100%;
   overflow-y: auto;
@@ -171,6 +175,10 @@ const ScrollContainer = styled.div`
     gap: 0.7rem;
     padding-right: 25px;
   }
+  
+  @media (max-width: 390px) {
+    gap: 0.5rem;
+  }
 `;
 
 const Section = styled.div`
@@ -181,25 +189,35 @@ const Section = styled.div`
 `;
 
 const SectionTitle = styled.h3`
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
   color: #333;
   
   @media (max-width: 480px) {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     margin-bottom: 0.2rem;
+  }
+  
+  @media (max-width: 390px) {
+    font-size: 0.75rem;
+    margin-bottom: 0.15rem;
   }
 `;
 
 const Overview = styled.p`
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   line-height: 1.4;
   color: #444;
   
   @media (max-width: 480px) {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     line-height: 1.3;
+  }
+  
+  @media (max-width: 390px) {
+    font-size: 0.7rem;
+    line-height: 1.2;
   }
 `;
 
@@ -212,12 +230,18 @@ const HighlightsList = styled.ul`
     margin-bottom: 0.3rem;
     padding-left: 1.2rem;
     position: relative;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     
     @media (max-width: 480px) {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       margin-bottom: 0.2rem;
       padding-left: 1rem;
+    }
+
+    @media (max-width: 390px) {
+      font-size: 0.7rem;
+      margin-bottom: 0.15rem;
+      padding-left: 0.8rem;
     }
 
     &:before {
@@ -233,11 +257,16 @@ const TechSpecsGrid = styled.div`
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   
   @media (max-width: 480px) {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     gap: 0.2rem;
+  }
+  
+  @media (max-width: 390px) {
+    font-size: 0.7rem;
+    gap: 0.15rem;
   }
   
   dt {
