@@ -46,32 +46,7 @@ const CardSide = styled(motion.div)`
   flex-direction: column;
 `;
 
-const Description = styled.p`
-  font-size: 15px;
-  line-height: 1.8;
-  max-width: 600px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  padding: 0 40px;
-  color: #333;
-  width: 100%;
-  
-  @media (max-width: 768px) {
-    font-size: 14px;
-    padding: 0 40px;
-    max-width: 100%;
-    line-height: 1.6;
-  }
-  
-  @media (max-width: 480px) {
-    font-size: 13px;
-    padding: 0 30px;
-    line-height: 1.5;
-  }
-`;
+
 
 const IconButton = styled(motion.button)`
   position: absolute;
