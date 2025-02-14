@@ -199,7 +199,7 @@ const SectionTitle = styled.h3`
   }
   
   @media (max-width: 390px) {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     margin-bottom: 0.15rem;
   }
 `;
@@ -215,7 +215,7 @@ const Overview = styled.p`
   }
   
   @media (max-width: 390px) {
-    font-size: 0.7rem;
+    font-size: 0.73rem;
     line-height: 1.2;
   }
 `;
@@ -238,7 +238,7 @@ const HighlightsList = styled.ul`
     }
 
     @media (max-width: 390px) {
-      font-size: 0.7rem;
+      font-size: 0.73rem;
       margin-bottom: 0.15rem;
       padding-left: 0.8rem;
     }
@@ -264,7 +264,7 @@ const TechSpecsGrid = styled.div`
   }
   
   @media (max-width: 390px) {
-    font-size: 0.7rem;
+    font-size: 0.73rem;
     gap: 0.15rem;
   }
   
