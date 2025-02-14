@@ -46,8 +46,6 @@ const CardSide = styled(motion.div)`
   flex-direction: column;
 `;
 
-
-
 const IconButton = styled(motion.button)`
   position: absolute;
   top: 20px;
@@ -136,15 +134,46 @@ const SuccessIcon = styled(motion.div)`
 `;
 
 const BackContent = styled.div`
-  padding: 3rem 2rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  height: 100%;
-  justify-content: center;
+`;
+
+const ContentWrapper = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 60px 20px;
+  overflow: hidden;
+  position: relative;
+`;
+
+const ScrollContainer = styled.div`
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  @media (max-width: 480px) {
+    gap: 0.6rem;
+    padding-right: 25px;
+  }
 `;
 
 const Section = styled.div`
+  min-height: fit-content;
   &:last-child {
     margin-bottom: 0;
   }
@@ -155,12 +184,22 @@ const SectionTitle = styled.h3`
   font-weight: 600;
   margin-bottom: 0.3rem;
   color: #333;
+  
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+  }
 `;
 
 const Overview = styled.p`
   font-size: 0.8rem;
   line-height: 1.4;
   color: #444;
+  
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    line-height: 1.3;
+  }
 `;
 
 const HighlightsList = styled.ul`
@@ -173,6 +212,12 @@ const HighlightsList = styled.ul`
     padding-left: 1.2rem;
     position: relative;
     font-size: 0.8rem;
+    
+    @media (max-width: 480px) {
+      font-size: 0.7rem;
+      margin-bottom: 0.2rem;
+      padding-left: 1rem;
+    }
 
     &:before {
       content: "•";
@@ -188,6 +233,11 @@ const TechSpecsGrid = styled.div`
   grid-template-columns: auto 1fr;
   gap: 0.3rem;
   font-size: 0.8rem;
+  
+  @media (max-width: 480px) {
+    font-size: 0.7rem;
+    gap: 0.2rem;
+  }
   
   dt {
     font-weight: 500;
@@ -336,33 +386,37 @@ const ProductDetail = () => {
                 </svg>
               </IconButton>
               <BackContent>
-                <Section>
-                  <SectionTitle>Overview</SectionTitle>
-                  <Overview>{product.overview}</Overview>
-                </Section>
-                
-                <Section>
-                  <SectionTitle>Highlights</SectionTitle>
-                  <HighlightsList>
-                    {product.highlights.map((highlight, index) => (
-                      <li key={index}>{highlight}</li>
-                    ))}
-                  </HighlightsList>
-                </Section>
-                
-                <Section>
-                  <SectionTitle>Tech Specs</SectionTitle>
-                  <TechSpecsGrid>
-                    <dt>Dimensions</dt>
-                    <dd>{product.techSpecs.dimensions}</dd>
-                    <dt>Material</dt>
-                    <dd>{product.techSpecs.material}</dd>
-                    <dt>Compatibility</dt>
-                    <dd>{product.techSpecs.compatibility}</dd>
-                    <dt>Weight</dt>
-                    <dd>{product.techSpecs.weight}</dd>
-                  </TechSpecsGrid>
-                </Section>
+                <ContentWrapper>
+                  <ScrollContainer>
+                    <Section>
+                      <SectionTitle>Overview</SectionTitle>
+                      <Overview>{product.overview}</Overview>
+                    </Section>
+                    
+                    <Section>
+                      <SectionTitle>Highlights</SectionTitle>
+                      <HighlightsList>
+                        {product.highlights.map((highlight, index) => (
+                          <li key={index}>{highlight}</li>
+                        ))}
+                      </HighlightsList>
+                    </Section>
+                    
+                    <Section>
+                      <SectionTitle>Tech Specs</SectionTitle>
+                      <TechSpecsGrid>
+                        <dt>Dimensions</dt>
+                        <dd>{product.techSpecs.dimensions}</dd>
+                        <dt>Material</dt>
+                        <dd>{product.techSpecs.material}</dd>
+                        <dt>Compatibility</dt>
+                        <dd>{product.techSpecs.compatibility}</dd>
+                        <dt>Weight</dt>
+                        <dd>{product.techSpecs.weight}</dd>
+                      </TechSpecsGrid>
+                    </Section>
+                  </ScrollContainer>
+                </ContentWrapper>
               </BackContent>
             </CardSide>
           )}
