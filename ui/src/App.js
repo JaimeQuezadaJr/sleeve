@@ -16,6 +16,11 @@ import Support from './pages/Support/Support';
 function AppRoutes() {
   const location = useLocation();
 
+  // Scroll to top on route change
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
