@@ -172,8 +172,7 @@ const ScrollContainer = styled.div`
   }
   
   @media (max-width: 480px) {
-    gap: 0.7rem;
-    padding-right: 25px;
+    gap: 0.5rem;
   }
   
   @media (max-width: 390px) {
