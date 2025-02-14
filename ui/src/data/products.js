@@ -33,7 +33,7 @@ export const products = [
     techSpecs: {
       dimensions: "11.5\" x 8.25\" x 0.5\"",
       material: "Neoprene exterior, microfiber interior",
-      compatibility: "iPad Pro 11\" and similar sized tablets",
+      compatibility: "iPad Pro 11\" ",
       weight: "0.2 lbs"
     }
   },

@@ -49,8 +49,8 @@ const CardSide = styled(motion.div)`
 const IconButton = styled(motion.button)`
   position: absolute;
   top: 20px;
-  right: ${props => props.left ? 'auto' : '20px'};
-  left: ${props => props.left ? '20px' : 'auto'};
+  right: 20px;
+  left: auto;
   background: none;
   border: none;
   cursor: pointer;
@@ -61,6 +61,7 @@ const IconButton = styled(motion.button)`
   svg {
     width: 20px;
     height: 20px;
+    transform: ${props => props.isBack ? 'rotate(180deg)' : 'none'};
   }
 `;
 
@@ -147,7 +148,7 @@ const ContentWrapper = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
-  padding: 60px 20px;
+  padding: 40px 20px 30px;
   overflow: hidden;
   position: relative;
 `;
@@ -167,7 +168,7 @@ const ScrollContainer = styled.div`
   }
   
   @media (max-width: 480px) {
-    gap: 0.6rem;
+    gap: 0.7rem;
     padding-right: 25px;
   }
 `;
@@ -368,7 +369,7 @@ const ProductDetail = () => {
               transition={{ duration: 0.3 }}
             >
               <IconButton
-                left
+                isBack
                 onClick={() => setIsFlipped(false)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
