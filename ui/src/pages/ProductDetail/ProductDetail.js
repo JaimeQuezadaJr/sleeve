@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { products } from '../../data/products';  // Keep using static data
 import { useCart } from '../../context/CartContext';
 
-const ProductContainer = styled.div`
+const ProductContainer = styled(motion.div)`
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -305,7 +305,12 @@ const ProductDetail = () => {
   };
 
   return (
-    <ProductContainer>
+    <ProductContainer
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
       <ProductCard>
         <AnimatePresence mode="wait">
           {!isFlipped ? (
@@ -314,7 +319,7 @@ const ProductDetail = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.4 }}
             >
               <ProductImage src={product.image} alt={product.title} />
               <ProductInfo>
@@ -394,7 +399,7 @@ const ProductDetail = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.4 }}
             >
               <IconButton
                 isBack

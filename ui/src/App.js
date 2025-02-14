@@ -16,9 +16,11 @@ import Support from './pages/Support/Support';
 function AppRoutes() {
   const location = useLocation();
 
-  // Scroll to top on route change
+  // Scroll to top only when navigating TO the home page
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    if (location.pathname === '/') {
+      window.scrollTo(0, 0);
+    }
   }, [location.pathname]);
 
   return (

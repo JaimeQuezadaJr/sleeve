@@ -13,6 +13,12 @@ const GridSection = styled.section`
   position: sticky;
   top: 0;
   background: #fff;
+  animation: fadeIn 0.5s ease-out;
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
   
   @media (min-width: 768px) {
     padding: 0 50px;
@@ -102,6 +108,7 @@ const ProductGrid = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ scale: 1.1 }}
+            exit={{ opacity: 0 }}
             transition={{ 
               duration: 0.4,
               ease: "easeOut"
