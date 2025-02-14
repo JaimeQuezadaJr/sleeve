@@ -4,45 +4,75 @@ export const products = [
     title: 'Macbook Pro Sleeve 13"', 
     price: '$50', 
     image: '/whitesleeve.webp',
-    description: `Engineered with military-grade 1000D nylon exterior, providing exceptional 
-    water resistance up to IPX4 rating and superior abrasion protection. The ultra-plush 3mm 
-    felt liner features a unique microfiber structure that actively repels dust while creating 
-    a cushioned barrier against impacts. The YKK® waterproof zippers and reinforced corners 
-    ensure complete protection from the elements. Each sleeve undergoes rigorous quality testing 
-    to ensure it meets our standards for both protection and style.`
+    overview: "Slim, water-resistant sleeve designed specifically for the MacBook Pro 13-inch, offering reliable protection without bulk.",
+    highlights: [
+      "Premium 600D polyester exterior with water-resistant coating",
+      "Soft 4mm neoprene padding with plush felt interior",
+      "Smooth YKK zipper with custom pull",
+      "Reinforced edges prevent wear and tear"
+    ],
+    techSpecs: {
+      dimensions: "13.3\" x 9.25\" x 0.75\"",
+      material: "600D polyester exterior, neoprene core, felt interior",
+      compatibility: "All 13-inch MacBook Pro models",
+      weight: "0.28 lbs"
+    }
   },
   { 
     id: 2, 
     title: 'iPad Pro Sleeve 11"', 
     price: '$30', 
     image: '/UltraSleeve_14_slategreen.webp',
-    description: `Protected by a high-density 800D nylon shell with DWR (Durable Water Repellent) 
-    coating that beads water on contact. The interior features our signature 4mm dense felt 
-    padding with an ultra-smooth 220GSM microfiber lining, creating a dual-layer defense against 
-    scratches and drops. The innovative magnetic closure system eliminates the need for zippers 
-    while maintaining a water-resistant seal. Tested to withstand drops from up to 4 feet while 
-    keeping your device secure.`
+    overview: "Minimalist sleeve that perfectly fits the iPad Pro 11-inch, providing essential protection for daily use.",
+    highlights: [
+      "Durable neoprene exterior with water-resistant finish",
+      "Soft microfiber interior prevents scratches",
+      "Secure magnetic snap closure",
+      "Slim profile fits easily in bags"
+    ],
+    techSpecs: {
+      dimensions: "11.5\" x 8.25\" x 0.5\"",
+      material: "Neoprene exterior, microfiber interior",
+      compatibility: "iPad Pro 11\" and similar sized tablets",
+      weight: "0.2 lbs"
+    }
   },
   { 
     id: 3, 
     title: 'Macbook Air Sleeve 13"', 
     price: '$50', 
     image: '/UltraSleeve_16_rose.webp',
-    description: `Constructed with aerospace-grade ballistic nylon featuring a TPU-coated exterior 
-    that repels water, snow, and dust. The premium 3.5mm felt interior utilizes a specialized 
-    cross-hatched weave that disperses impact forces while preventing micro-scratches. Reinforced 
-    with high-density foam corners and anti-static treatment throughout. The sleeve's thermal 
-    regulation properties help maintain optimal device temperature during transport.`
+    overview: "Sleek protective sleeve perfectly tailored for the MacBook Air 13-inch, balancing style and functionality.",
+    highlights: [
+      "Durable 600D polyester with water-resistant coating",
+      "Plush felt interior with 3mm foam padding",
+      "Full-length YKK zipper for easy access",
+      "Slim design maintains MacBook Air's portability"
+    ],
+    techSpecs: {
+      dimensions: "13.3\" x 9.25\" x 0.6\"",
+      material: "600D polyester exterior, foam core, felt interior",
+      compatibility: "All MacBook Air 13\" models",
+      weight: "0.25 lbs"
+    }
   },
   { 
     id: 4, 
     title: 'iPad Mini Sleeve', 
     price: '$25', 
     image: '/ipadsleeve.webp',
-    description: `Features a ripstop nylon exterior with advanced hydrophobic coating, achieving 
-    an IPX3 water resistance rating. The interior combines 4mm premium German felt with our 
-    proprietary shock-absorbing polymer matrix. The felt's dense 300GSM construction creates 
-    thousands of micro-cushions that cradle your device, while the anti-static treatment prevents 
-    dust accumulation. Stress-tested to withstand over 10,000 insertions without showing wear.`
+    overview: "Compact protective sleeve designed specifically for the iPad Mini, perfect for everyday carry.",
+    highlights: [
+      "Lightweight neoprene construction",
+      "Soft-touch interior lining",
+      "Secure zip closure",
+      "Ultra-portable design"
+    ],
+    techSpecs: {
+      dimensions: "8.75\" x 6.25\" x 0.4\"",
+      material: "Neoprene exterior and interior",
+      compatibility: "All iPad Mini generations",
+      weight: "0.15 lbs"
+    }
   },
 ]; 

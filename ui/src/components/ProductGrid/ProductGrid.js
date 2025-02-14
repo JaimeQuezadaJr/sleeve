@@ -89,8 +89,8 @@ const ProductTitle = styled.h3`
   font-weight: 700;
 `;
 
-const ProductPrice = styled.p`  font-size: 16px;
-`;
+// const ProductPrice = styled.p`  font-size: 16px;
+// `;
 
 const ProductGrid = () => {
   return (
@@ -111,7 +111,7 @@ const ProductGrid = () => {
               <ProductImage src={product.image} alt={product.title} />
               <ProductInfo>
                 <ProductTitle>{product.title}</ProductTitle>
-                <ProductPrice>{product.price}</ProductPrice>
+                {/* <ProductPrice>{product.price}</ProductPrice> */}
               </ProductInfo>
             </Link>
           </ProductCard>

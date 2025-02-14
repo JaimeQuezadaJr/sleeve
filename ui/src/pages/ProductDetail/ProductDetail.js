@@ -160,6 +160,70 @@ const SuccessIcon = styled(motion.div)`
   justify-content: center;
 `;
 
+const BackContent = styled.div`
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  justify-content: center;
+`;
+
+const Section = styled.div`
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: #333;
+`;
+
+const Overview = styled.p`
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #444;
+`;
+
+const HighlightsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    margin-bottom: 0.3rem;
+    padding-left: 1.2rem;
+    position: relative;
+    font-size: 0.8rem;
+
+    &:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #666;
+    }
+  }
+`;
+
+const TechSpecsGrid = styled.div`
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  
+  dt {
+    font-weight: 500;
+    color: #666;
+  }
+  
+  dd {
+    margin: 0;
+  }
+`;
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -296,9 +360,35 @@ const ProductDetail = () => {
                   <polyline points="12 19 5 12 12 5" />
                 </svg>
               </IconButton>
-              <Description>
-                {product.description}
-              </Description>
+              <BackContent>
+                <Section>
+                  <SectionTitle>Overview</SectionTitle>
+                  <Overview>{product.overview}</Overview>
+                </Section>
+                
+                <Section>
+                  <SectionTitle>Highlights</SectionTitle>
+                  <HighlightsList>
+                    {product.highlights.map((highlight, index) => (
+                      <li key={index}>{highlight}</li>
+                    ))}
+                  </HighlightsList>
+                </Section>
+                
+                <Section>
+                  <SectionTitle>Tech Specs</SectionTitle>
+                  <TechSpecsGrid>
+                    <dt>Dimensions</dt>
+                    <dd>{product.techSpecs.dimensions}</dd>
+                    <dt>Material</dt>
+                    <dd>{product.techSpecs.material}</dd>
+                    <dt>Compatibility</dt>
+                    <dd>{product.techSpecs.compatibility}</dd>
+                    <dt>Weight</dt>
+                    <dd>{product.techSpecs.weight}</dd>
+                  </TechSpecsGrid>
+                </Section>
+              </BackContent>
             </CardSide>
           )}
         </AnimatePresence>
