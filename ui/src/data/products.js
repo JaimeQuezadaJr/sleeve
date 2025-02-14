@@ -7,7 +7,7 @@ export const products = [
     overview: "Slim, water-resistant sleeve designed specifically for the MacBook Pro 13-inch, offering reliable protection without bulk.",
     highlights: [
       "Premium 600D polyester exterior with water-resistant coating",
-      "Soft 4mm neoprene padding with plush felt interior",
+      "Soft 4mm neoprene padding with plush interior",
       "Smooth YKK zipper with custom pull",
       "Reinforced edges prevent wear and tear"
     ],
