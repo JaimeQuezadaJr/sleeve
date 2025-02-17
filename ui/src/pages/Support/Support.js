@@ -47,6 +47,10 @@ const Email = styled.a`
 `;
 
 const Support = () => {
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <PageContainer
       initial={{ opacity: 0 }}
